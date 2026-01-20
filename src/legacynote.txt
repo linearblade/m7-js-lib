@@ -1,0 +1,18 @@
+/*
+  Lifted from gs-bootStrapper. Cheap rip out of my framework.
+  v1 -
+  [ ] - add the framework loader modules here as a lib function and simplify them
+  [ ] - 
+  [ ] - clean up remote package adder . test for already loaded files.
+  
+  // pull a package with dispatcher function
+  lib.repo.set('main', 'https://js.m7.org/gs/v1/lib/');
+  lib.repo.pull("template.js","output");
+
+  //pull a closured lib.
+  lib.repo.set('main', 'https://js.m7.org/');
+  lib.repo.pull("activeTags/v.0.9.9/lib.js","at",{exec:true});
+
+  /raw data in lib.ws.response
+  library stored in lib.output
+*/
