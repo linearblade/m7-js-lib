@@ -1,82 +1,104 @@
-//lib._http = (function(lib){
-export function install(lib) {
-    let get = function(url, opts){
-	opts = lib.utils.toHash(opts);
-	if (opts.debug)console.log('opts', opts);
-	let req = new XMLHttpRequest();
-	let method = lib.hash.get(opts,'method',"GET") ;
-	//4/16/24 -- added with credentials.
-	if(opts['credentials'] == true){
-	    req.open(method,url,true);
-	    req.withCredentials = true;
-	}else req.open(method,url);
-	req.onreadystatechange = function () {
-	    if(req.readyState === XMLHttpRequest.DONE){
-		//console.log('received data. status='+req.status, opts);
-		if (req.status >=400)lib.utils.getFunction(opts['error'],1)(req);
-		else lib.utils.getFunction(opts['load'],1)(req);		
+/**
+ * Internal bootstrap HTTP transport.
+ * Used ONLY during early runtime before higher-level request APIs exist.
+ * Not intended for direct application use.
 
-		//if (lib.utils.getFunction(opts['load'])) opts['load'](req);
-		/*
-		  if (req.status === 200) {
-		  console.log('received data');
-		  success(req);
-		  }else{
-		  console.log('error getting data');
-		  failure(req);
-		  }*/
-	    }
-	};
-	req.send(lib.hash.get(opts,'body'));
-    }
-    function _request(url, opts){
-	opts = lib.utils.toHash(opts);
-	//if (opts.debug)console.log('opts', opts);
-	let req = new XMLHttpRequest();
-	
-	let method = lib.hash.get(opts,'method', "GET") ;
-	let headers = lib.utils.toArray(opts.header);
-	//4/16/24 -- added with credentials.
-	if(opts['credentials'] == true){
-	    req.open(method,url,true);
-	    req.withCredentials = true;
-	}else req.open(method,url);
-	
-	if(opts.urlencoded)req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	for (i of headers){
-	    if (lib.hash.is(i)){
-		req.setRequestHeader(i['name'],i['value']);
-	    }
+ * this is beginning of time bootstrapper. its probably not needed but you never know.
+ */
+
+//lib._http = (function(lib){
+export function make(lib) {
+    function get (url, opts) {
+        opts = lib.hash.to(opts);
+        if (opts.debug) console.log('opts', opts);
+
+        const XHR = lib._env?.root?.XMLHttpRequest;
+        if (!XHR) throw new Error("XHR unavailable");
+
+        const req = new XHR();
+        const method = lib.hash.get(opts, 'method', "GET");
+
+        // open (always async)
+        req.open(method, url, true);
+
+        // 4/16/24 -- added with credentials.
+        if (opts.credentials === true) req.withCredentials = true;
+
+        req.onreadystatechange = function () {
+            if (req.readyState === XHR.DONE) {
+                if (req.status >= 400) lib.func.get(opts.error, 1)(req);
+                else lib.func.get(opts.load, 1)(req);
+            }
+        };
+
+        req.send(lib.hash.get(opts, 'body'));
+        return req;
+    };
+    
+    function _request(url, opts) {
+	opts = lib.hash.to(opts);
+
+	const XHR = lib._env?.root?.XMLHttpRequest;
+	if (!XHR) throw new Error("XHR unavailable");
+
+	const req = new XHR();
+
+	const method  = lib.hash.get(opts, 'method', "GET");
+	const headers = lib.array.to(opts.header);
+
+	// open (always async)
+	req.open(method, url, true);
+
+	// 4/16/24 -- added with credentials.
+	if (opts.credentials === true) req.withCredentials = true;
+
+	if (opts.urlencoded) {
+            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	}
-	req.request={
-	    url: url,
-	    body: lib.hash.get(opts,'body')
+
+	for (const h of headers) {
+            if (lib.hash.is(h)) {
+		req.setRequestHeader(h.name, h.value);
+            }
+	}
+
+	req.request = {
+            url,
+            body: lib.hash.get(opts, 'body')
 	};
+
 	req.onreadystatechange = function () {
-	    if(req.readyState === XMLHttpRequest.DONE){
-		//console.log('received data. status='+req.status, opts);
-		if(opts.json==1)req.jsonData = lib.json.parse(req.responseText+"");
-		if (req.status >=400)lib.utils.getFunction(opts['error'],1)(req);
-		else lib.utils.getFunction(opts['load'],1)(req);		
-	    }
+            if (req.readyState === XHR.DONE) {
+		if (opts.json === 1) {
+                    try {
+			req.jsonData = JSON.parse(String(req.responseText));
+                    } catch (e) {
+			req.jsonData = undefined;
+                    }
+		}
+
+		if (req.status >= 400) lib.func.get(opts.error, 1)(req);
+		else lib.func.get(opts.load, 1)(req);
+            }
 	};
-	if (opts.debug ){
-	    console.log('sending',opts,req);
-	}
-	req.send(lib.hash.get(opts,'body'));
+
+	if (opts.debug) console.log('sending', opts, req);
+
+	req.send(lib.hash.get(opts, 'body'));
+	return req;
     }
     function post(url,opts){
-	opts = lib.utils.toHash(opts);
+	opts = lib.hash.to(opts);
 	opts.method='POST';
 	return _request(url,opts);
     }
-    var disp = {
+    
+    return  {
 	get: get,
 	post: post,
 	request: _request
 	
     };
-    return disp;
 }
 
-export default install;
+export default make;

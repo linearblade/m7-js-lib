@@ -1,6 +1,18 @@
+Legacy code ahead.
+
+Modules in this directory predate ES6 imports and modern patterns.
+They are excluded from the main distribution and kept for reference or
+backward compatibility only.
+
+Do not rely on these unless you know exactly why you need them.
+
+
 /*
+
+preserved the how to if you want to use them for some reason (I dont!)
   Lifted from gs-bootStrapper. Cheap rip out of my framework.
-  v1 -
+
+  v1 - eh, v1 never got done until AFTER es6! so ... just keeping the check list in case you're wondering why its cludgy as fuck all!
   [ ] - add the framework loader modules here as a lib function and simplify them
   [ ] - 
   [ ] - clean up remote package adder . test for already loaded files.

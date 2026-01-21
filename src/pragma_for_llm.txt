@@ -1,0 +1,82 @@
+
+🔒 Core Pragma: Canonical Coercion over Defensive Branching
+
+This codebase uses total functions as normalization boundaries so that internal logic can remain linear, readable, and assumption-safe.
+
+
+
+Principle
+
+Normalize once. Never re-check. Never branch again.
+
+Utility functions in this codebase are designed to be total functions:
+	•	They accept any input
+	•	They always return a valid, predictable type
+	•	They never require callers to defend against null, undefined, or malformed input
+
+Rule of Thumb
+
+If a value is passed through a canonical coercion helper, no further validation is required.
+
+arr = lib.array.to(garbage);
+// arr is now always an Array. End of story.
+
+No:
+	•	if (!arr)
+	•	if (Array.isArray(arr))
+	•	if (arr && arr.length)
+	•	pyramids of conditional garbage
+
+Why
+
+Defensive branching at every call site:
+	•	destroys readability
+	•	multiplies bugs
+	•	obscures intent
+	•	bloats control flow
+
+Instead:
+	•	push uncertainty to a single normalization point
+	•	collapse it deterministically
+	•	let the rest of the code assume correctness
+
+Design Pattern
+
+Canonical coercion helpers are intentionally opinionated.
+
+Examples:
+	•	lib.array.to(x) → always returns an array
+	•	lib.utils.toString(x) → always returns a string (or empty string)
+	•	lib.hash.get(obj, path, def) → never throws, always returns something predictable
+
+Falsy, malformed, or “garbage” input is not an error — it is normalized.
+
+Non-Goals
+
+These helpers do not:
+	•	validate business logic
+	•	enforce strict typing
+	•	signal errors via exceptions
+
+They exist solely to make downstream code linear, readable, and boring.
+
+Outcome
+
+Call sites stay simple:
+
+lib.array.to(cfg.items).forEach(...)
+lib.hash.get(data, 'a.b.c')
+lib.utils.toString(val).toLowerCase()
+
+No conditionals.
+No second-guessing.
+No cleanup afterward.
+
+⸻
+
+If you want, next we can:
+	•	bake this pragma into a short CONTRIBUTING.md rule
+	•	add a header comment to utils.js / array.js
+	•	or use it as a lint/refactor guide for the rest of the lib
+
+This is a solid foundation — and it shows.

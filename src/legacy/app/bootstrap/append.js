@@ -1,6 +1,6 @@
 
 //$SECTION -LIB.APP.BOOTSTRAP.APPEND
-export function install(lib) {
+export function make(lib) {
 
     let mScript= function (item,opts={}){
 	var url = lib.utils.linkType(item.url,'relative')?(item.base?item.base:"")+item.url:item.url;
@@ -23,4 +23,4 @@ export function install(lib) {
     };
     return disp;
 }
-export default install;
+export default make;
