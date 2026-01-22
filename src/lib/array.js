@@ -106,11 +106,23 @@ export function make(lib) {
         return output;
     }
 
+    /**
+     * Return array length, or 0 if not an array.
+     *
+     * @param {*} val
+     * @returns {number}
+     */
+    function len(val){
+	if(!lib.array.is(val) ) return 0;
+	return val.length;
+    }
+    
     return {
         append: arrayAppend,
         subtract: arraySubtract,
 	is,
-	to
+	to,
+	len
     };
 }
 
