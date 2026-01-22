@@ -1,4 +1,4 @@
-lib.hash.set(lib, 'bool', (function (lib) {
+export function make(lib){
     /**
      * Detect affirmative intent.
      *
@@ -106,4 +106,6 @@ lib.hash.set(lib, 'bool', (function (lib) {
         yes: intentTrue,
         no: intentFalse
     };
-})(lib));
+}
+
+export default make;

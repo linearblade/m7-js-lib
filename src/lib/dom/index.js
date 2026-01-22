@@ -1,4 +1,6 @@
 //$SECTION -LIB.DOM
+import make_dom_create from './create.js';
+import make_dom_append from './append.js';
 
 export function make(lib) {
 
@@ -365,8 +367,9 @@ export function make(lib) {
 	removeElement: removeElement,
 	qs:qs,
 	insertAfter:insertAfter,
-	filterAttributes
-	
+	filterAttributes,
+	create: make_dom_create(lib),
+	append: make_dom_append(lib)
     };
 }
 

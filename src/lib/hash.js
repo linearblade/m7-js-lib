@@ -298,7 +298,30 @@ export function make(lib) {
 	return ptr;
     }
 
-    
+
+    /**
+     * Return the first non-null / non-undefined value found at any of the given paths.
+     *
+     * @param {Object} rec   Source object
+     * @param {string|Array} list  Space-delimited paths or array of paths
+     * @param {*} [def]     Default value if none found
+     * @returns {*}
+     */
+    function getUntilNotEmpty(rec, list, def) {
+	list = lib.array.to(list, /\s+/);
+
+	for (let i = 0; i < list.length; i++) {
+            const key = list[i];
+            const val = lib.hash.get(rec, key);
+
+            // Accept anything except null / undefined
+            if (!lib.utils.baseType(val, "null undefined")) {
+		return val;
+            }
+	}
+
+	return def;
+    }    
     /*
 
     //legacy hash set. cannot do destructive setting. ironically, it works amazingly well on the dom tree where the new sauce doesn't.
@@ -849,7 +872,8 @@ export function make(lib) {
 	flatten: flatten,
 	inflate: inflate,
 	exists,
-	strip
+	strip,
+	getUntilNotEmpty
     };
 
     return disp;
