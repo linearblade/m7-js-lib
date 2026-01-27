@@ -489,11 +489,89 @@ export function make(lib) {
         return output;
     }
 
+    /**
+     * Return array length, or 0 if not an array.
+     *
+     * @param {*} val
+     * @returns {number}
+     */
+    function len(val){
+	if(!lib.array.is(val) ) return 0;
+	return val.length;
+    }
+
+    /**
+     * Normalize an input into an array of non-empty strings.
+     *
+     * This helper is intentionally strict and predictable.
+     * It is used to sanitize loosely-typed inputs such as selectors,
+     * pipeline names, stack lists, and other config-driven string arrays.
+     *
+     * Behavior:
+     * - Accepts a scalar or array input
+     * - Strings are trimmed; empty strings are discarded
+     * - Finite numbers may be converted to strings (enabled by default)
+     * - Booleans may be converted to strings (disabled by default)
+     * - All other types are ignored (objects, arrays, functions, null, etc.)
+     *
+     * @param {*} val
+     *        Input value to normalize (string, number, boolean, array, or mixed).
+     *
+     * @param {Object} [opts]
+     * @param {RegExp} [opts.splitter]
+     *        Optional splitter used when normalizing string input.
+     *
+     * @param {boolean} [opts.numbers=true]
+     *        Whether finite numbers should be converted to strings.
+     *
+     * @param {boolean} [opts.booleans=false]
+     *        Whether booleans should be converted to strings.
+     *
+     * @returns {string[]}
+     *          Array of sanitized, non-empty strings.
+     */
+    function filterStrings(val, opts = {}) {
+	opts = lib.hash.to(opts, 'splitter');
+	const allowNumbers = (opts.numbers !== false);
+	const allowBooleans = !!opts.booleans;
+	const splitter = opts.splitter;
+
+	const list = lib.array.to(val, splitter);
+
+	const out = [];
+
+	for (let i = 0; i < list.length; i++) {
+            const v = list[i];
+
+            if (typeof v === "string") {
+		const s = v.trim();
+		if (s) out.push(s);
+		continue;
+            }
+
+            if (allowNumbers && typeof v === "number" && Number.isFinite(v)) {
+		out.push(String(v));
+		continue;
+            }
+
+            if (allowBooleans && typeof v === "boolean") {
+		out.push(String(v));
+		continue;
+            }
+
+            // everything else is intentionally dropped:
+            // objects, arrays, functions, null, undefined, symbols
+	}
+
+	return out;
+    }    
     return {
         append: arrayAppend,
         subtract: arraySubtract,
 	is,
-	to
+	to,
+	len,
+	filterStrings
     };
 }
 
@@ -1845,7 +1923,30 @@ export function make(lib) {
 	return ptr;
     }
 
-    
+
+    /**
+     * Return the first non-null / non-undefined value found at any of the given paths.
+     *
+     * @param {Object} rec   Source object
+     * @param {string|Array} list  Space-delimited paths or array of paths
+     * @param {*} [def]     Default value if none found
+     * @returns {*}
+     */
+    function getUntilNotEmpty(rec, list, def) {
+	list = lib.array.to(list, /\s+/);
+
+	for (let i = 0; i < list.length; i++) {
+            const key = list[i];
+            const val = lib.hash.get(rec, key);
+
+            // Accept anything except null / undefined
+            if (!lib.utils.baseType(val, "null undefined")) {
+		return val;
+            }
+	}
+
+	return def;
+    }    
     /*
 
     //legacy hash set. cannot do destructive setting. ironically, it works amazingly well on the dom tree where the new sauce doesn't.
@@ -2396,7 +2497,10 @@ export function make(lib) {
 	flatten: flatten,
 	inflate: inflate,
 	exists,
-	strip
+	strip,
+	getUntilNotEmpty,
+	deepCopy
+	
     };
 
     return disp;
@@ -2933,7 +3037,7 @@ export function make(lib) {
 
 	isHash       : lib.hash.is,
 	toHash       : lib.hash.to,
-
+	deepCopy     : lib.hash.deepCopy,
 	isScalar     : isScalar,
 	toString     : lib.str.to,
 	baseType     : baseType,

@@ -189,7 +189,7 @@ export function make(lib) {
 
 	isHash       : lib.hash.is,
 	toHash       : lib.hash.to,
-
+	deepCopy     : lib.hash.deepCopy,
 	isScalar     : isScalar,
 	toString     : lib.str.to,
 	baseType     : baseType,

@@ -116,13 +116,79 @@ export function make(lib) {
 	if(!lib.array.is(val) ) return 0;
 	return val.length;
     }
-    
+
+    /**
+     * Normalize an input into an array of non-empty strings.
+     *
+     * This helper is intentionally strict and predictable.
+     * It is used to sanitize loosely-typed inputs such as selectors,
+     * pipeline names, stack lists, and other config-driven string arrays.
+     *
+     * Behavior:
+     * - Accepts a scalar or array input
+     * - Strings are trimmed; empty strings are discarded
+     * - Finite numbers may be converted to strings (enabled by default)
+     * - Booleans may be converted to strings (disabled by default)
+     * - All other types are ignored (objects, arrays, functions, null, etc.)
+     *
+     * @param {*} val
+     *        Input value to normalize (string, number, boolean, array, or mixed).
+     *
+     * @param {Object} [opts]
+     * @param {RegExp} [opts.splitter]
+     *        Optional splitter used when normalizing string input.
+     *
+     * @param {boolean} [opts.numbers=true]
+     *        Whether finite numbers should be converted to strings.
+     *
+     * @param {boolean} [opts.booleans=false]
+     *        Whether booleans should be converted to strings.
+     *
+     * @returns {string[]}
+     *          Array of sanitized, non-empty strings.
+     */
+    function filterStrings(val, opts = {}) {
+	opts = lib.hash.to(opts, 'splitter');
+	const allowNumbers = (opts.numbers !== false);
+	const allowBooleans = !!opts.booleans;
+	const splitter = opts.splitter;
+
+	const list = lib.array.to(val, splitter);
+
+	const out = [];
+
+	for (let i = 0; i < list.length; i++) {
+            const v = list[i];
+
+            if (typeof v === "string") {
+		const s = v.trim();
+		if (s) out.push(s);
+		continue;
+            }
+
+            if (allowNumbers && typeof v === "number" && Number.isFinite(v)) {
+		out.push(String(v));
+		continue;
+            }
+
+            if (allowBooleans && typeof v === "boolean") {
+		out.push(String(v));
+		continue;
+            }
+
+            // everything else is intentionally dropped:
+            // objects, arrays, functions, null, undefined, symbols
+	}
+
+	return out;
+    }    
     return {
         append: arrayAppend,
         subtract: arraySubtract,
 	is,
 	to,
-	len
+	len,
+	filterStrings
     };
 }
 

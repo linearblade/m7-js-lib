@@ -873,7 +873,9 @@ export function make(lib) {
 	inflate: inflate,
 	exists,
 	strip,
-	getUntilNotEmpty
+	getUntilNotEmpty,
+	deepCopy
+	
     };
 
     return disp;
