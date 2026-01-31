@@ -5,7 +5,8 @@ export function make(lib){
        simple alias to base type.
      */
     function is(v) {
-	return lib.utils.baseType(v, 'string');
+	return typeof v === 'string';
+	//return lib.utils.baseType(v, 'string');
     }
     /**
      * Coerce a value to a string (legacy-safe, normalized).

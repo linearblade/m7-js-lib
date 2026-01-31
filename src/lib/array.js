@@ -24,41 +24,131 @@ export function make(lib) {
 	return (is(list))?list:[list] ;
     }
     
+    function to_old(list, split) {
+        if (!list) return [];
+        if (is(list)) return list;
+        // If a split token is provided and list is a string, split it (RegExp supported)
+        if (!lib.utils.isEmpty(split) && typeof list === 'string') {
+            return list.split(split);
+        }
+
+        return [list];
+    }
+    
+    
+
     /**
      * Coerce any input into an array.
      *
-     * Contract:
-     * - This function ALWAYS returns an Array.
-     * - Garbage / non-arrayable input is coerced to an empty array.
+     * Design:
+     * - This is a TOTAL function: it never throws and always returns an Array.
+     * - Coercion and normalization are preferred over validation or rejection.
      *
-     * Semantics (locked):
-     * - Falsy values (null, undefined, false, 0, "") → []
-     * - Arrays are returned as-is.
-     * - If `split` is provided and the input is a string, the string is split
-     *   (supports string or RegExp).
-     * - Otherwise, the input is wrapped into a single-element array.
+     * Contract (locked):
+     * - ALWAYS returns an Array.
+     * - Falsy values (null, undefined, false, 0, "") → [].
+     * - Arrays are returned as-is unless trimming is explicitly enabled.
+     * - If `opts.split` is provided and the input is a string, the string is split
+     *   using the given string or RegExp.
+     * - Otherwise, non-array input is wrapped into a single-element array.
+     * - Optional trimming via `opts.trim` applies to string values only.
      *
-     * Purpose:
-     * - Normalize arbitrary input into a predictable array form.
-     * - Safe for defensive data handling and config parsing.
+     * Trimming semantics:
+     * - When `opts.trim` is true:
+     *   - Leading/trailing whitespace is removed from string values.
+     *   - Empty strings ("") resulting from trimming or splitting are removed.
+     * - Non-string elements are preserved as-is.
+     *
+     * Notes:
+     * - This function performs no type enforcement beyond coercion.
+     * - Returned arrays may be modified in-place by trimming.
+     * - Intended for defensive normalization of configuration and user input.
      *
      * @param {*} list
-     * @param {string|RegExp} [split]
+     *     Value to coerce into an array.
+     *
+     * @param {Object} [opts]
+     *     Optional coercion options.
+     *
+     * @param {string|RegExp} [opts.split]
+     *     Token or RegExp used to split string input.
+     *
+     * @param {boolean} [opts.trim]
+     *     If true, trim whitespace from string values and remove empty strings.
+     *
      * @returns {Array}
+     *     Normalized array representation of the input.
      */
-    function to(list, split) {
-	if (!list) return [];
-	if (is(list)) return list;
 
-	// If a split token is provided and list is a string, split it (RegExp supported)
-	if (!lib.utils.isEmpty(split) && typeof list === 'string') {
-            return list.split(split);
-	}
-
-	return [list];
-    }
 
     
+
+    function to(list, opts) {
+	opts = lib.hash.to(opts, "split");
+
+	const split  = opts.split ? opts.split :  null;
+	const doTrim = opts.trim  ? opts.trim  :  false;
+
+
+	if (!list) return [];
+	if (is(list)) return doTrim?arrayTrim(list):list;
+
+	
+	let out;
+
+	//its not an array here, so just return.
+	if (!lib.str.is(list))
+	    return [list];
+	
+        if (doTrim) list = list.trim();
+        out = split ? list.split(split) : [list];
+	//now its definately an array.
+	return doTrim?arrayTrim(out) : out;
+    }
+
+    /**
+     * Coerce input into an array and trim whitespace from string elements.
+     *
+     * Contract:
+     * - ALWAYS returns an Array.
+     * - Non-array input is wrapped into a single-element array.
+     * - String elements are trimmed.
+     * - Empty strings ("") are removed after trimming.
+     * - Non-string elements are preserved as-is.
+     *
+     * Notes:
+     * - This function performs in-place modification on the returned array.
+     * - If a scalar is passed, the original value is not mutated.
+     * - This is a coercive normalization helper, not a validator.
+     *
+     * @param {*} input
+     *     Value to normalize and trim.
+     *
+     * @returns {Array}
+     *     Array with trimmed string elements and empty strings removed.
+     */
+    function arrayTrim(input) {
+	const out = is(input) ? input : [input];
+
+	let w = 0;
+	for (let i = 0; i < out.length; i++) {
+            const v = out[i];
+
+            if (lib.str.is(v)) {
+		const t = v.trim();
+		if (t !== '') {
+                    out[w++] = t;
+		}
+            } else {
+		out[w++] = v;
+            }
+	}
+
+	// truncate array in-place
+	out.length = w;
+	return out;
+    }
+
     /**
      * Return a copy of `list` with all values in `exclude` removed.
      *
@@ -185,6 +275,7 @@ export function make(lib) {
     return {
         append: arrayAppend,
         subtract: arraySubtract,
+	trim : arrayTrim,
 	is,
 	to,
 	len,

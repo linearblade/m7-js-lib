@@ -33,7 +33,34 @@ export function make(lib) {
         return true;
     }
     
+    /**
+     * Test whether a value is an empty hash (plain object with no keys).
+     *
+     * Contract:
+     * - Returns true ONLY if the value is a hash AND has zero enumerable keys.
+     * - Returns false for null, undefined, non-objects, arrays, and non-empty hashes.
+     *
+     * @param {*} value
+     * @returns {boolean}
+     */
+    function empty(value) {
+	return lib.hash.is(value) && Object.keys(value).length === 0;
+    }
 
+    /**
+     * Return the enumerable keys of a hash.
+     *
+     * Contract:
+     * - Returns an array of keys ONLY if the value is a hash.
+     * - Returns an empty array for all other inputs (null, undefined, arrays, primitives).
+     * - Never throws.
+     *
+     * @param {*} value
+     * @returns {Array<string>}
+     */
+    function keys(value) {
+	return lib.hash.is(value) ? Object.keys(value) : [];
+    }
         /**
      * Coerce any input into a hash (plain object).
      *
@@ -56,7 +83,7 @@ export function make(lib) {
         if (is(obj)) return obj;
 
         const out = {};
-        if (!lib.utils.isEmpty(hotkey) && lib.utils.baseType(hotkey, 'string')) {
+        if (!lib.utils.isEmpty(hotkey) && lib.str.is(hotkey) ) {
             out[hotkey] = obj;
         }
         return out;
@@ -231,6 +258,19 @@ export function make(lib) {
 	return left;
     }
     
+    function mergeMany(list, opts) {
+	// Only keep actual hashes; lib.hash.merge returns undefined unless both are hashes
+	list = lib.array.to(list).filter(x => lib.hash.is(x));
+	
+	if (list.length === 0) return {};
+	
+	let out = lib.utils.deepCopy(list[0]);
+	
+	for (let i = 1; i < list.length; i++) {
+            out = lib.hash.merge(out, list[i], opts) || out;
+	}
+	return out;
+    }
 
     /**
      * Safely get a nested value from an object using a dot-path.
@@ -869,12 +909,15 @@ export function make(lib) {
 	hasKeys,
 	append:hashAppend,
 	merge:merge,
+	mergeMany,
 	flatten: flatten,
 	inflate: inflate,
 	exists,
 	strip,
 	getUntilNotEmpty,
-	deepCopy
+	deepCopy,
+	keys,
+	empty
 	
     };
 

@@ -70,8 +70,12 @@ export function make(lib) {
      * @returns {boolean|string}
      */
     function baseType(value, comp) {
-	const list = lib.array.to(comp,/\s+/);
-
+	//gets used everywhere, avoid lib.array.to b/c it will cause circular function hell
+	const list = lib.array.is(comp)
+	      ? comp
+	      : (lib.str.is(comp) ? comp.split(/\s+/) : (comp ? [comp] : []));
+	//const list = lib.array.to(comp,/\s+/);
+	
 	// Compare mode -> boolean
 	if (list.length) {
             let type;
@@ -179,9 +183,61 @@ export function make(lib) {
     }
 
 
-
+    /**
+     * Clamp a value to an allowed set.
+     *
+     * Contract:
+     * - Returns `test` if it exists in `range`.
+     * - Otherwise returns `def` (default: undefined).
+     * - Never throws.
+     *
+     * Semantics:
+     * - `range` may be an array or a space-delimited string.
+     * - Matching is strict (`===`), no type coercion.
+     *
+     * @param {Array|string} range
+     *     Allowed values.
+     *
+     * @param {*} test
+     *     Value to test.
+     *
+     * @param {*} [def]
+     *     Default value if `test` is not allowed.
+     *
+     * @returns {*}
+     */
+    function clamp(range, test, def = undefined) {
+	range = lib.array.to(range, { split: /\s+/, trim: true });
+	return range.includes(test) ? test : def;
+    }
     
+    /**
+     * Coerce a value into a finite number.
+     *
+     * Contract:
+     * - Returns a finite number if coercion succeeds.
+     * - Returns `def` otherwise.
+     * - Never throws.
+     *
+     * Semantics:
+     * - Uses `Number()` for conversion (no partial parsing).
+     * - Empty-ish values (`undefined`, `null`, "", false) are treated as invalid.
+     * - Rejects NaN and Infinity.
+     *
+     * @param {*} value
+     *     Value to coerce.
+     *
+     * @param {*} [def]
+     *     Default value if coercion fails.
+     *
+     * @returns {number|*}
+     */
+    function toNumber(value, def = undefined) {
+	if (lib.utils.isEmpty(value)) return def;
 
+	const n = Number(value);
+	return Number.isFinite(n) ? n : def;
+    }
     
     return {
 	isArray      : lib.array.is,
@@ -196,7 +252,8 @@ export function make(lib) {
 	isEmpty      : isEmpty,
 
 	linkType     : linkType,
-
+	clamp        : clamp,
+	toNumber     : toNumber,
 	getFunction  : lib.func.get,
 	stripComments: lib.str.stripComments,
 	lc           : lib.str.lc
