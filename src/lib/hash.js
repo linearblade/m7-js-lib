@@ -898,6 +898,56 @@ export function make(lib) {
         }
         return true;
     }
+
+    /**
+     * Slice selected keys/paths from a record into a new object.
+     *
+     *  PHP  to JS port of hash::slice(). for original (and still better. b/c I neglected to port all features to php, see Perl version , probably sliceIf)
+     *
+     * @param {Object} rec                Source record
+     * @param {string|string[]} list      Space-delimited string or array of keys/paths. If empty, uses Object.keys(rec).
+     * @param {string|Object} [opts]      Options; supports opts.set flags (string)
+     * @returns {Object}                  New object containing selected paths
+     *
+     * Flags (opts.set):
+     * - truthy => "force set": include keys even if they don't exist (value will be undefined)
+     * - 'l'    => when not force-set: skip empty-string "" and null values
+     * - 'd'    => when not force-set: skip null values
+     */
+    function slice(rec, list, opts) {
+	if (!lib.hash.is(rec)) return {};
+
+	opts = lib.hash.to(opts, "set") ;
+	const flags = String(opts.set ?? "");
+	const forceSet = lib.bool.yes(flags);
+
+	// Normalize list
+	list = lib.array.to(list, {trim:true, split: /\s+/}).filter(Boolean);;
+	if (!lib.array.len(list) ) list = keys(list);
+
+	const out = {};
+
+	for (const key of list) {
+            const val = hashGet(rec, key);
+
+            if (hasKeys(rec, key) || forceSet) {
+		if (!forceSet) {
+                    // 'l' flag: skip empty string or null
+                    if (flags.includes("l")) {
+			if ((typeof val === "string" && val.length < 1) || val === null) continue;
+                    }
+                    // 'd' flag: skip null
+                    if (flags.includes("d")) {
+			if (val === null) continue;
+                    }
+		}
+		lib.hash.set(out, key, val);
+            }
+	}
+
+	return out;
+    }
+
     
     const disp = {
 	get: hashGet,
@@ -917,8 +967,8 @@ export function make(lib) {
 	getUntilNotEmpty,
 	deepCopy,
 	keys,
-	empty
-	
+	empty,
+	slice
     };
 
     return disp;

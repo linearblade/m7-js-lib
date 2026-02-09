@@ -106,48 +106,45 @@ export function make(lib) {
 	return doTrim?arrayTrim(out) : out;
     }
 
+
     /**
-     * Coerce input into an array and trim whitespace from string elements.
-     *
-     * Contract:
-     * - ALWAYS returns an Array.
-     * - Non-array input is wrapped into a single-element array.
-     * - String elements are trimmed.
-     * - Empty strings ("") are removed after trimming.
-     * - Non-string elements are preserved as-is.
-     *
-     * Notes:
-     * - This function performs in-place modification on the returned array.
-     * - If a scalar is passed, the original value is not mutated.
-     * - This is a coercive normalization helper, not a validator.
-     *
-     * @param {*} input
-     *     Value to normalize and trim.
-     *
-     * @returns {Array}
-     *     Array with trimmed string elements and empty strings removed.
-     */
+ * Normalize a value into an array and trim whitespace from string elements.
+ *
+ * Contract:
+ * - ALWAYS returns a new Array.
+ * - Non-array input is wrapped into a single-element array.
+ * - String elements are `.trim()`med.
+ * - Empty strings ("") are removed after trimming.
+ * - Non-string elements are preserved as-is.
+ *
+ * Notes:
+ * - The original input value is never mutated.
+ * - If an array is provided, its reference is not preserved.
+ * - This is a coercive normalization helper, not a validator.
+ *
+ * @param {*} input
+ *     Value to normalize and trim.
+ *
+ * @returns {Array}
+ *     A new array with trimmed string elements and empty strings removed.
+ */
+
     function arrayTrim(input) {
-	const out = is(input) ? input : [input];
+    const src = is(input) ? input : [input];
+    const out = [];
 
-	let w = 0;
-	for (let i = 0; i < out.length; i++) {
-            const v = out[i];
-
-            if (lib.str.is(v)) {
-		const t = v.trim();
-		if (t !== '') {
-                    out[w++] = t;
-		}
-            } else {
-		out[w++] = v;
-            }
-	}
-
-	// truncate array in-place
-	out.length = w;
-	return out;
+    for (const v of src) {
+        if (lib.str.is(v)) {
+            const t = v.trim();
+            if (t) out.push(t);
+        } else {
+            out.push(v);
+        }
     }
+
+    return out;
+}
+    
 
     /**
      * Return a copy of `list` with all values in `exclude` removed.

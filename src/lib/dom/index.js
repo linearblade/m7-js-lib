@@ -268,6 +268,22 @@ export function make(lib) {
     }
 
 
+    // Takes a nebulous target and attempts to squeeze a DOM node from it
+    function attemptDom(input, barf = false) {
+        // Check if input is empty or already a DOM element
+        let node = lib.utils.isEmpty(input) ? null :                                // Handle empty input
+            lib.dom.is(input) ? input :                                      // It's already a DOM element
+            typeof input === 'object' && input.target ? input.target :       // Likely an event handler
+            lib.dom.getElement(input) ?? document.querySelector(input);      // Try getting DOM or query selector
+
+        // Optionally throw an error if not found
+        if (!node && barf) {
+            throw Error(`cannot derive a dom node from :`,input);
+        }
+
+        return node;
+    }
+
     /**
      * Collect an element's attributes into a plain object, optionally filtering by regex.
      *
@@ -369,7 +385,8 @@ export function make(lib) {
 	insertAfter:insertAfter,
 	filterAttributes,
 	create: make_dom_create(lib),
-	append: make_dom_append(lib)
+	append: make_dom_append(lib),
+	attempt : attemptDom
     };
 }
 

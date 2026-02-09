@@ -4,6 +4,7 @@ import make_boot from "./lib/_boot.js";
 import make_bool from "./lib/bool.js";
 import make_array from "./lib/array.js";
 import make_hash from "./lib/hash.js";
+import make_number from "./lib/number.js";
 
 import make_utils from "./lib/utils.js";
 import make_str from "./lib/str.js";
@@ -33,11 +34,12 @@ lib._boot.install();
 // Core / primitive utilities (minimal deps)
 // ─────────────────────────────────────────
 
-lib.bool = make_bool(lib);
-lib.array = make_array(lib);
-lib.hash = make_hash(lib);
-lib.str = make_str(lib);
-lib.func = make_func(lib);
+lib.bool   = make_bool(lib);
+lib.array  = make_array(lib);
+lib.hash   = make_hash(lib);
+lib.number = make_number(lib);
+lib.str    = make_str(lib);
+lib.func   = make_func(lib);
 
 // ─────────────────────────────────────────
 // Utility layers (depend on primitives)

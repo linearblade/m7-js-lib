@@ -123,8 +123,49 @@ export function make(lib){
     }
 
 
+    /**
+     * Counts the total occurrences of one or more characters in a string.
+     * 
+     * @param {string} str - The string to search in
+     * @param {string|string[]} chars - A single character or an array of characters to count
+     * @returns {number} The total number of times any of the characters appear
+     * 
+     * @example
+     * countChars("hello world", "l")          // → 3
+     * countChars("banana", ["a", "n"])        // → 5  (3 a's + 2 n's)
+     * countChars("javascript", ["a", "s"])    // → 3
+     * countChars("aaaAAA", "A")               // → 3
+     * countChars("", ["x", "y"])              // → 0
+     */
+    function countChars(str, chars) {
+	// Early exit for invalid/empty inputs
+	if (!str || typeof str !== 'string') return 0;
+	chars = lib.array.to(chars);
+	if(!lib.array.len(chars) ) return 0;
+
+
+	// Optional: filter out invalid entries (non-strings or empty)
+	const validChars = chars.filter(c => typeof c === 'string' && c.length > 0);
+
+	if (validChars.length === 0) return 0;
+
+	let count = 0;
+
+	for (let i = 0; i < str.length; i++) {
+            const currentChar = str[i];
+            // Check if current character is in our target set
+            if (validChars.includes(currentChar)) {
+		count++;
+            }
+	}
+
+	return count;
+    }
+
+    
+
     return {
-	is,lc,to,stripComments
+	is,lc,to,stripComments,countChars
     };
     
 

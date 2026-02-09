@@ -137,6 +137,59 @@ export function make(lib) {
     }
     
     
+
+    /**
+     * Classify a link-like value or test membership against allowed types.
+     *
+     * Types:
+     * - "hash"     : item is a plain object/hash
+     * - "pathAbs"  : string starts with "/" (absolute *path* on origin)
+     * - "pathRel"  : relative path ("./", "../", or bare "foo")
+     * - "urlAbs"   : absolute URL with http/https scheme
+     * - "urlNet"   : network-path reference ("//cdn.example.com/x.js")
+     * - "resource" : non-http(s) scheme (data:, blob:, file:, chrome-extension:, etc.)
+     * - "unknown"  : string but does not fit above (rare; usually treated as pathRel)
+     * - undefined  : not a hash and not a string
+     *
+     * Predicate mode: if `check` provided and non-empty, returns 1 if type matches any entry, else 0.
+     */
+    function linkType(item, check = []) {
+	let type;
+
+	check = lib.array.to(check,{split:/\s+/,trim:true}).filter(Boolean);
+
+	if (lib.hash.is(item)) {
+            type = "hash";
+	} else if (baseType(item, "string")) {
+            const s = item.trim();
+
+            if (!s) {
+		type = "unknown";
+            } else if (s.startsWith("//")) {
+		type = "urlNet";
+            } else if (/^https?:\/\//i.test(s)) {
+		type = "urlAbs";
+            } else if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/i.test(s)) {
+		// Any other scheme: data:, blob:, file:, chrome-extension:, app:, etc.
+		type = "resource";
+            } else if (s.startsWith("/")) {
+		type = "pathAbs";
+            } else {
+		// "./", "../", or bare "foo"
+		type = "pathRel";
+            }
+	}
+
+	if (check.length) {
+            for (let i = 0; i < check.length; i++) {
+		if (type === check[i]) return 1;
+            }
+            return 0;
+	}
+
+	return type;
+    }
+
     /**
      * Classify a link-like value or test membership against allowed types.
      *
@@ -160,7 +213,9 @@ export function make(lib) {
      * @param {string|Array<string>} [check=[]]
      * @returns {string|number|undefined}
      */
-    function linkType(item, check = []) {
+
+    
+    function oldlinkType(item, check = []) {
 	let type;
 	check = lib.array.to(check);
 
@@ -207,8 +262,8 @@ export function make(lib) {
      * @returns {*}
      */
     function clamp(range, test, def = undefined) {
-	range = lib.array.to(range, { split: /\s+/, trim: true });
-	return range.includes(test) ? test : def;
+	const clamp_range = lib.array.to(range, { split: /\s+/, trim: true });
+	return clamp_range.includes(test) ? test : def;
     }
     
     /**

@@ -102,9 +102,11 @@ export function make(lib){
         byIntent,
 
         // Aliases (shorthand / legacy-friendly)
-        ish: isIntent,
-        yes: intentTrue,
-        no: intentFalse
+	hasIntent : isIntent,
+        ish       : isIntent,
+        yes       : intentTrue,
+        no        : intentFalse,
+
     };
 }
 
