@@ -22,9 +22,9 @@ export function make(lib) {
 
         // Reject non-plain objects (classes, DOM nodes, etc.)
         /*
-        if (!obj.hasOwnProperty('constructor') && obj.constructor !== Object) {
-            return false;
-        }
+          if (!obj.hasOwnProperty('constructor') && obj.constructor !== Object) {
+          return false;
+          }
         */
         if (!Object.prototype.hasOwnProperty.call(obj, 'constructor') && obj.constructor !== Object) {
             return false;
@@ -61,7 +61,7 @@ export function make(lib) {
     function keys(value) {
 	return lib.hash.is(value) ? Object.keys(value) : [];
     }
-        /**
+    /**
      * Coerce any input into a hash (plain object).
      *
      * Contract:
@@ -872,6 +872,167 @@ export function make(lib) {
 	return out;
     }
 
+
+    /**
+     * Filter an object or array by predicate.
+     *
+     * PURPOSE:
+     * - Structural filtering of hashes and arrays.
+     * - User-defined predicate controls what is kept or dropped.
+     *
+     * SEMANTICS:
+     * - Requires a predicate function.
+     * - Works on plain objects and arrays.
+     * - Returns a new object/array; never mutates input.
+     * - Filtering is shallow by default.
+     * - If `opts === true` or `opts.deep === true`, filtering is recursive (deep).
+     *
+     * PREDICATE:
+     *   fn(value, key, parent) => boolean
+     *
+     * - If predicate returns truthy, the value is kept.
+     * - If predicate returns falsy, the value is dropped.
+     *
+     * NOTES:
+     * - Arrays preserve indices by default (no compaction).
+     * - Empty containers are preserved unless explicitly removed via options
+     *   or predicate logic.
+     * - Scalars are only filtered when encountered as children.
+     *
+     * OPTIONS:
+     * - deep: boolean
+     *     If true, recurse into arrays and plain hashes.
+     *
+     * - compact: boolean
+     *     Sugar for `{ compactArrays: true, compactObjects: true }`.
+     *
+     * - compactArrays: boolean
+     *     If true, removed array entries are omitted and arrays are reindexed.
+     *     If false, array positions are preserved (removed entries become `undefined`).
+     *
+     * - compactObjects: boolean
+     *     If true, empty objects/arrays encountered as children are removed from parents.
+     *     If false, empty containers are preserved.
+     *
+     * @param {*} value
+     *   Source value to filter. Must be a plain object or array to be filterable.
+     *
+     * @param {Function} fn
+     *   Predicate function `(value, key, parent) => boolean`.
+     *   Returning truthy keeps the value; falsy drops it.
+     *
+     * @param {Object|boolean} [opts]
+     *   - `true` enables deep traversal.
+     *   - Object enables deep traversal and/or compaction options.
+     *
+     * @returns {*}
+     *   A new filtered object or array.
+     *   If the input is not a plain object or array, it is returned unchanged.
+     *
+     * @throws {Error}
+     *   If `fn` is not a function.
+     */
+    function filter(value, fn, opts) {
+	if (typeof fn !== "function") {
+            throw new Error("lib.hash.filter(value, fn, opts): fn must be a function");
+	}
+
+	// normalize opts (your hotkey support lives in hash.to)
+	const o = lib.hash.to(opts, "deep");
+
+	const deep = lib.bool.yes(o.deep);
+
+	const compact = lib.bool.yes(o.compact);
+	const compactArrays  = lib.bool.yes(o.compactArrays)  || compact;
+	const compactObjects = lib.bool.yes(o.compactObjects) || compact;
+
+	const isEmptyContainer = (v) => {
+            if (Array.isArray(v)) return v.length === 0;
+            if (lib.hash.is(v)) return Object.keys(v).length === 0;
+            return false;
+	};
+
+	const hasAny = (x) => {
+            if (Array.isArray(x)) {
+		for (let i = 0; i < x.length; i++) {
+                    if (x[i] !== undefined) return true;
+		}
+		return false;
+            }
+            if (lib.hash.is(x)) return Object.keys(x).length > 0;
+            return false;
+	};
+
+	const keepContainer = (child) =>
+              deep && (Array.isArray(child) || lib.hash.is(child)) && hasAny(child);
+
+	const walk = (v, key, parent) => {
+            // Array
+            if (Array.isArray(v)) {
+		if (!v.length) return v;
+
+		// compact arrays => reindex (omit removed entries)
+		if (compactArrays) {
+                    const out = [];
+                    for (let i = 0; i < v.length; i++) {
+			const orig = v[i];
+			const child = deep ? walk(orig, i, v) : orig;
+
+			// keep if predicate matches OR container has kept children
+			if (fn(child, i, v) || keepContainer(child)) {
+                            // compactObjects can drop empty containers
+                            if (compactObjects && isEmptyContainer(child)) continue;
+                            out.push(child);
+			}
+                    }
+                    return out;
+		}
+
+		// preserve indices (holes/undefined represent dropped entries)
+		const out = new Array(v.length);
+		for (let i = 0; i < v.length; i++) {
+                    const orig = v[i];
+                    const child = deep ? walk(orig, i, v) : orig;
+
+                    if (fn(child, i, v) || keepContainer(child)) {
+			if (compactObjects && isEmptyContainer(child)) continue;
+			out[i] = child;
+                    }
+		}
+		return out;
+            }
+
+            // Plain hash
+            if (lib.hash.is(v)) {
+		const out = {};
+		for (const k in v) {
+                    if (!Object.prototype.hasOwnProperty.call(v, k)) continue;
+
+                    const orig = v[k];
+                    const child = deep ? walk(orig, k, v) : orig;
+
+                    if (fn(child, k, v) || keepContainer(child)) {
+			if (compactObjects && isEmptyContainer(child)) continue;
+			out[k] = child;
+                    }
+		}
+		return out;
+            }
+
+            // Leaf
+            return v;
+	};
+
+	// Root handling
+	if (!Array.isArray(value) && !lib.hash.is(value)) return value;
+
+	const out = walk(value, null, null);
+
+
+	//if (compactObjects && isEmptyContainer(out)) return is(value) ? {} : [];
+
+	return out;
+    }
     
     /**
      * Check that an object has all of the given keys / paths.
@@ -964,6 +1125,7 @@ export function make(lib) {
 	inflate: inflate,
 	exists,
 	strip,
+	filter,
 	getUntilNotEmpty,
 	deepCopy,
 	keys,
