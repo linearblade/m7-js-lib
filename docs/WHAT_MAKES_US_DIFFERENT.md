@@ -34,7 +34,7 @@ Behavioral contracts are documented for entrypoints and module surfaces to suppo
 
 * [README](../README.md)
 * [About](./ABOUT.md)
-* [Philosophy](./philosophy.md)
+* [Philosophy](./PHILOSOPHY.md)
 * [Entrypoint Contract](./entrypoints-contract.md)
 * [Usage TOC](./usage/TOC.md)
 * [API Index](./api/INDEX.md)

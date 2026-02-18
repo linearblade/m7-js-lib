@@ -63,6 +63,6 @@ Compatibility notes:
 * [Introduction](./usage/INTRODUCTION.md)
 * [Quick Start](./usage/QUICKSTART.md)
 * [Entrypoint Contract](./entrypoints-contract.md)
-* [Philosophy](./philosophy.md)
+* [Philosophy](./PHILOSOPHY.md)
 * [What Makes m7-js-lib Different](./WHAT_MAKES_US_DIFFERENT.md)
 * [README](../README.md)

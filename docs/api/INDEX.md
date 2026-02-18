@@ -1,48 +1,46 @@
 # API Index - m7-js-lib
 
-[README](../../README.md) -> [API Index](./INDEX.md) -> [Usage TOC](../usage/TOC.md) -> [Architecture Index](../architecture/INDEX.md)
+[README](../../README.md) -> [API Index](./INDEX.md) -> [Modules Index](./modules/INDEX.md) -> [Function Index](./functions/INDEX.md)
 
-This directory contains API-oriented references for `m7-js-lib`.
+This API reference is organized as a 3-level split:
 
-If you are new to the project, start with:
+1. Top-level API index (`docs/api/INDEX.md`)
+2. Module references (`docs/api/modules/*`)
+3. Individual function references (`docs/api/functions/<module>/<function>.md`)
 
+## Primary Entry Points
+
+* `src/index.js` -> explicit side-effect-free singleton entry
+* `src/auto.js` -> convenience auto-init entry
+* Singleton contract -> [../entrypoints-contract.md](../entrypoints-contract.md)
+
+## Module References
+
+* [lib._boot](./modules/BOOT.md) - Environment bootstrap helpers for root resolution and `lib._env` installation.
+* [lib._http](./modules/HTTP.md) - Low-level XHR transport helpers used by bootstrap/runtime internals.
+* [lib.args](./modules/ARGS.md) - Arguments-object slicing and positional argument parsing utilities.
+* [lib.array](./modules/ARRAY.md) - Array coercion and manipulation helpers for list normalization workflows.
+* [lib.bool](./modules/BOOL.md) - Explicit boolean intent detection and conversion helpers.
+* [lib.func](./modules/FUNC.md) - Function lookup, wrapping, and composition helpers.
+* [lib.hash](./modules/HASH.md) - Plain-object utilities for deep path access, transforms, and filtering.
+* [lib.number](./modules/NUMBER.md) - Numeric coercion and bounded conversion helpers.
+* [lib.require](./modules/REQUIRE.md) - Dependency-gate helpers for required library paths and services.
+* [lib.service](./modules/SERVICE.md) - In-memory service registry with conventional start/stop dispatch.
+* [lib.str](./modules/STR.md) - String coercion and lightweight text utility helpers.
+* [lib.utils](./modules/UTILS.md) - Cross-module normalization aliases plus shared classification helpers.
+* [lib.dom](./modules/DOM.md) - DOM element resolution, attribute/property access, and helper entrypoints.
+* [lib.dom.create](./modules/DOM_CREATE.md) - DOM element factory helpers for scripts, styles, and generic nodes.
+* [lib.dom.append](./modules/DOM_APPEND.md) - DOM insertion and replacement helpers with position-based placement.
+
+## Navigation
+
+* Modules index -> [./modules/INDEX.md](./modules/INDEX.md)
+* Function index -> [./functions/INDEX.md](./functions/INDEX.md)
 * Usage TOC -> [../usage/TOC.md](../usage/TOC.md)
-* Quick Start -> [../usage/QUICKSTART.md](../usage/QUICKSTART.md)
 * Architecture Index -> [../architecture/INDEX.md](../architecture/INDEX.md)
-* Project README -> [../../README.md](../../README.md)
-
----
-
-## Core Surfaces
-
-* **Entrypoint Contract** -> [../entrypoints-contract.md](../entrypoints-contract.md)
-* **Module Surfaces** -> [./MODULE_SURFACES.md](./MODULE_SURFACES.md)
-* **Source: `src/index.js`** -> [../../src/index.js](../../src/index.js)
-* **Source: `src/auto.js`** -> [../../src/auto.js](../../src/auto.js)
-
----
-
-## JSDoc Canonical Sources
-
-Detailed function-level API contracts are maintained inline in source JSDoc:
-
-* [../../src/lib/args.js](../../src/lib/args.js)
-* [../../src/lib/array.js](../../src/lib/array.js)
-* [../../src/lib/bool.js](../../src/lib/bool.js)
-* [../../src/lib/func.js](../../src/lib/func.js)
-* [../../src/lib/hash.js](../../src/lib/hash.js)
-* [../../src/lib/number.js](../../src/lib/number.js)
-* [../../src/lib/str.js](../../src/lib/str.js)
-* [../../src/lib/utils.js](../../src/lib/utils.js)
-* [../../src/lib/dom/index.js](../../src/lib/dom/index.js)
-* [../../src/lib/service.js](../../src/lib/service.js)
-* [../../src/lib/require.js](../../src/lib/require.js)
-* [../../src/lib/_http.js](../../src/lib/_http.js)
-
----
-
-## Related
-
-* Usage docs -> [../usage/TOC.md](../usage/TOC.md)
-* Architecture docs -> [../architecture/INDEX.md](../architecture/INDEX.md)
 * Philosophy -> [../PHILOSOPHY.md](../PHILOSOPHY.md)
+
+## Canonical Source
+
+Per-function behavior contracts are source-of-truth in JSDoc blocks inside `src/lib/*` and `src/lib/dom/*`.
+
