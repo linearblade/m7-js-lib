@@ -1,4 +1,39 @@
 //lib.hash = (function(lib){
+/**
+ * Hash/object utilities.
+ *
+ * Purpose:
+ * - Normalize plain-object handling and deep path access
+ * - Merge/flatten/inflate/filter structural data
+ * - Preserve legacy-safe behavior for older call paths where needed
+ */
+/**
+ * Build the `lib.hash` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   get: Function,
+ *   set: Function,
+ *   legacySet: Function,
+ *   expand: Function,
+ *   to: Function,
+ *   is: Function,
+ *   hasKeys: Function,
+ *   append: Function,
+ *   merge: Function,
+ *   mergeMany: Function,
+ *   flatten: Function,
+ *   inflate: Function,
+ *   exists: Function,
+ *   strip: Function,
+ *   filter: Function,
+ *   getUntilNotEmpty: Function,
+ *   deepCopy: Function,
+ *   keys: Function,
+ *   empty: Function,
+ *   slice: Function
+ * }}
+ */
 export function make(lib) {
 
 
@@ -258,6 +293,19 @@ export function make(lib) {
 	return left;
     }
     
+    /**
+     * Merge a list of hashes left-to-right.
+     *
+     * Semantics:
+     * - Non-hash entries are dropped.
+     * - Returns `{}` when no hash entries remain.
+     * - Uses `lib.hash.merge` for each step.
+     * - Never mutates input entries.
+     *
+     * @param {Array|*} list
+     * @param {Object} [opts]
+     * @returns {Object}
+     */
     function mergeMany(list, opts) {
 	// Only keep actual hashes; lib.hash.merge returns undefined unless both are hashes
 	list = lib.array.to(list).filter(x => lib.hash.is(x));
@@ -362,26 +410,35 @@ export function make(lib) {
 
 	return def;
     }    
-    /*
-
-    //legacy hash set. cannot do destructive setting. ironically, it works amazingly well on the dom tree where the new sauce doesn't.
-
-    sets a property within the hash. uses the same property methodology  as getProperty.
-    
-    if a intervening hash key does not exist, it will not be created and will return 0
-    else, returns 1 (success)
-    */
-
-
+    /**
+     * Legacy non-destructive dotted-path setter.
+     *
+     * Contract (legacy behavior):
+     * - Traverses only through existing object hops.
+     * - Does NOT create missing intermediate containers.
+     * - On traversal failure before final hop: logs and returns `0`.
+     * - On successful leaf assignment: returns `1`.
+     * - Returns `0` for invalid root/path conditions or when nothing is written.
+     *
+     * This helper exists because certain DOM-object paths behaved more reliably
+     * under this conservative traversal strategy.
+     *
+     * @param {*} E
+     * @param {string|Array<string>} prop
+     * @param {*} value
+     * @returns {0|1}
+     */
     function legacySet(E, prop, value){
 	//console.log('value is '+value);
 	if (lib.utils.baseType(E,'object')) {
 
-	    var parts = lib.array.to(prop,'.');
-	    if (parts){
-		var ptr = E;
-		parts.forEach (function(item,index) {
-		    var Type = lib.utils.baseType(  ptr[item]);
+	    const parts = lib.array.to(prop,'.');
+	    if (parts.length){
+		let ptr = E;
+		for(let index = 0; index < parts.length; index++){
+		    const item = parts[index];
+		    //parts.forEach (function(item,index) {
+		    const Type = lib.utils.baseType(  ptr[item]);
 		    //console.log(item + ' ' + Type);
 		    if (lib.utils.baseType(  ptr[item], 'object')) {
 			ptr = ptr[item];
@@ -396,14 +453,12 @@ export function make(lib) {
 		    }
 		    
 		    
-		} );
-
-		
-	    }else {
-		console.log('wasnt able to parse array from prop: '+prop);
+		//} );
+		}
 		return 0;
-		E[prop] = value;
-		return 1;
+	    }else {
+		//console.log('wasnt able to parse array from prop: '+prop);
+		return 0;
 	    }
 	}else {
 	    return 0;
@@ -696,8 +751,6 @@ export function make(lib) {
 	return out;
     }
 
-
-    // leaving this here unlinked, b/c it will eventually be replaced with slackparse.
     /**
      * Parse a simple delimited key/value string into an object.
      *
@@ -717,8 +770,8 @@ export function make(lib) {
      * - Invalid fragments (no `:` or `=`) are ignored.
      * - Values are always returned as strings.
      *
-     * This is a lightweight legacy helper and will eventually
-     * be replaced by a more robust parser.
+     * This is a lightweight legacy helper intended for simple config fragments.
+     * It is not a full parser.
      *
      * @param {string|Object|undefined} str
      * @returns {Object|undefined}
@@ -1063,10 +1116,17 @@ export function make(lib) {
     /**
      * Slice selected keys/paths from a record into a new object.
      *
-     *  PHP  to JS port of hash::slice(). for original (and still better. b/c I neglected to port all features to php, see Perl version , probably sliceIf)
+     * Legacy lineage:
+     * - Ported from older hash-slice implementations.
+     * - This JS version intentionally keeps a narrower feature set.
+     *
+     * List-default semantics:
+     * - Defaults to `Object.keys(rec)` only when `list` is omitted/falsy.
+     * - If a provided list normalizes to empty (e.g. whitespace-only string),
+     *   returns `{}` (no implicit fallback).
      *
      * @param {Object} rec                Source record
-     * @param {string|string[]} list      Space-delimited string or array of keys/paths. If empty, uses Object.keys(rec).
+     * @param {string|string[]} list      Space-delimited string or array of keys/paths.
      * @param {string|Object} [opts]      Options; supports opts.set flags (string)
      * @returns {Object}                  New object containing selected paths
      *
@@ -1081,12 +1141,12 @@ export function make(lib) {
 	opts = lib.hash.to(opts, "set") ;
 	const flags = String(opts.set ?? "");
 	const forceSet = lib.bool.yes(flags);
-
-	// Normalize list
-	list = lib.array.to(list, {trim:true, split: /\s+/}).filter(Boolean);;
-	if (!lib.array.len(list) ) list = keys(list);
-
 	const out = {};
+	// Normalize list
+	list = !list ? keys(rec) : lib.array.to(list, {trim:true, split: /\s+/}).filter(Boolean);
+	if (!lib.array.len(list) ) return out;
+
+
 
 	for (const key of list) {
             const val = hashGet(rec, key);
@@ -1110,6 +1170,9 @@ export function make(lib) {
     }
 
     
+    /**
+     * Public dispatch surface for `lib.hash`.
+     */
     const disp = {
 	get: hashGet,
 	set: hashSet,

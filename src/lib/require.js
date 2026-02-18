@@ -11,12 +11,20 @@
  * - "exists" means: path resolves to a non-nullish value (NOT null/undefined)
  * - If opts.allowFalsy === false, the leaf must be truthy (!!val)
  */
-
+/**
+ * Build the `lib.require` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   all: Function,
+ *   lib: Function,
+ *   service: Function
+ * }}
+ */
 export function make(lib) {
     /**
-     * Require targets on an arbitrary root object.
+     * Require targets on the main `lib` object.
      *
-     * @param {Object} root
      * @param {string|Array<string>} targets
      * @param {Object|boolean} [opts]
      * @param {string}  [opts.mod='[require]']
@@ -72,16 +80,6 @@ export function make(lib) {
 	}
 
 	return returnMap ? outMap : outArr;
-    }
-    /**
-     * Require targets on the main lib object.
-     *
-     * @param {string|Array<string>} targets
-     * @param {Object|boolean} [opts]
-     * @returns {Array<any>|Object}
-     */
-    function libReq(targets, opts) {
-        return all(lib, targets, opts);
     }
 
     /**
@@ -139,9 +137,12 @@ export function make(lib) {
     }
 
     
+    /**
+     * Public dispatch surface for `lib.require`.
+     */
     return {
         all,
-        lib: libReq,
+        lib: all,
 	service
     };
 }

@@ -2,6 +2,38 @@
 import make_dom_create from './create.js';
 import make_dom_append from './append.js';
 
+/**
+ * DOM interaction namespace.
+ *
+ * Purpose:
+ * - Element lookup and attribute/property access helpers
+ * - Query-string parsing helpers
+ * - Attribute filtering / dataset-like extraction utilities
+ * - Composition of `dom.create` and `dom.append` submodules
+ *
+ * Environment:
+ * - Browser DOM APIs required for most operations.
+ */
+/**
+ * Build the `lib.dom` namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   get: Function,
+ *   set: Function,
+ *   is: Function,
+ *   isDom: Function,
+ *   getElement: Function,
+ *   byId: Function,
+ *   removeElement: Function,
+ *   qs: Function,
+ *   insertAfter: Function,
+ *   filterAttributes: Function,
+ *   create: Object,
+ *   append: Object,
+ *   attempt: Function
+ * }}
+ */
 export function make(lib) {
 
 
@@ -139,8 +171,24 @@ export function make(lib) {
     }
 
 
-
-    //todo allow total data set upload later
+    /**
+     * Set a value on a DOM element using legacy-safe attribute/property rules.
+     *
+     * Behavior:
+     * - Returns `undefined` if target is not DOM or attr is empty after normalization.
+     * - Supports class operations via:
+     *   `setClass`, `addClass`, `removeClass`, `toggleClass`.
+     * - Supports `dataset.<path>` writes through `lib.hash.set`.
+     * - Supports direct property carve-outs (e.g. value, textContent, innerHTML, href).
+     * - For dotted attr paths, delegates to `lib.hash.legacySet` (DOM-friendly legacy pathing).
+     * - Otherwise uses `e.setAttribute(attr, val)`.
+     * - Always returns `get(e, attr)` after write path completes.
+     *
+     * @param {Element} e
+     * @param {*} attr
+     * @param {*} val
+     * @returns {*|undefined}
+     */
     function set(e,attr,val){
 
 	attr = lib.utils.toString(attr, { force: 1 });
@@ -211,8 +259,6 @@ export function make(lib) {
 
     }
     
-    //work in progress. collect all the carvout properties , and make it insenstive , fixing for later.
-
     /**
      * Get a value from a DOM element with a few legacy carve-outs.
      *
@@ -268,13 +314,31 @@ export function make(lib) {
     }
 
 
-    // Takes a nebulous target and attempts to squeeze a DOM node from it
+    /**
+     * Best-effort coercion from mixed input into a DOM node.
+     *
+     * Resolution order:
+     * - Empty input -> null
+     * - DOM element input -> input
+     * - Event-like input with `.target` -> `input.target`
+     * - `lib.dom.getElement(input)` (id/element semantics)
+     * - `document.querySelector(input)` fallback (when available)
+     *
+     * Error mode:
+     * - If `barf === true` and no node is resolved, throws.
+     *
+     * @param {*} input
+     * @param {boolean} [barf=false]
+     * @returns {Element|null}
+     */
     function attemptDom(input, barf = false) {
+        const envDoc = lib.hash.get(lib, "_env.root.document") || lib.hash.get(lib, "_env.document");
+
         // Check if input is empty or already a DOM element
         let node = lib.utils.isEmpty(input) ? null :                                // Handle empty input
             lib.dom.is(input) ? input :                                      // It's already a DOM element
             typeof input === 'object' && input.target ? input.target :       // Likely an event handler
-            lib.dom.getElement(input) ?? document.querySelector(input);      // Try getting DOM or query selector
+            lib.dom.getElement(input) ?? (envDoc && envDoc.querySelector ? envDoc.querySelector(input) : null);      // Try getting DOM or query selector from env-root document
 
         // Optionally throw an error if not found
         if (!node && barf) {
@@ -329,17 +393,23 @@ export function make(lib) {
     }
 
     /**
-     * INTENTIONALLY UNEXPORTED / INCOMPLETE -- not sure why it was never completed. but it staying in until I decide what to do with it.
-     * Parse data-* attributes into a nested object.
+     * Parse selected `data-*` attributes into a nested object.
+     *
+     * Status:
+     * - Internal helper (currently unexported).
+     * - Intentionally dormant in current runtime (not wired into public dispatch).
+     * - Retained for compatibility/reference and future consolidation.
+     * - Contains an unresolved parser dependency (`parseStringSimple`) in this module;
+     *   do not activate without completing that dependency path.
      *
      * Semantics (LOCKED / legacy-safe):
-     * - Reads attributes matching /^data-<prefix>/ (prefix optional).
+     * - Reads attributes matching `/^data-<prefix>/` (prefix optional).
      * - Strips the matched prefix from attribute names.
-     * - Converts `config.delim` (default "-") into "." and inflates via lib.hash.set.
-     * - Values are attribute strings.
+     * - Converts `config.delim` (default "-") into "." and inflates via `lib.hash.set`.
+     * - Values remain attribute strings (no type coercion).
      *
      * Config:
-     * - prefix : optional prefix after "data-" (e.g. "foo" matches data-foo-*)
+     * - prefix : optional prefix after "data-" (e.g. "foo" matches `data-foo-*`)
      * - delim  : delimiter inside the remaining key (default "-")
      *
      * @param {Element} e
@@ -373,6 +443,9 @@ export function make(lib) {
 	return out;
     }
     
+    /**
+     * Public dispatch surface for `lib.dom`.
+     */
     return {
 	get: get,
 	set: set,

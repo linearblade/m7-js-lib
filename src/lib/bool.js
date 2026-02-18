@@ -1,3 +1,27 @@
+/**
+ * Explicit-boolean intent helpers.
+ *
+ * Purpose:
+ * - Distinguish explicit yes/no intent from generic JS truthiness
+ * - Provide predictable conversion helpers for config-style inputs
+ */
+/**
+ * Build the `lib.bool` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   intentTrue: Function,
+ *   intentFalse: Function,
+ *   is: Function,
+ *   isIntent: Function,
+ *   to: Function,
+ *   byIntent: Function,
+ *   hasIntent: Function,
+ *   ish: Function,
+ *   yes: Function,
+ *   no: Function
+ * }}
+ */
 export function make(lib){
     /**
      * Detect affirmative intent.
@@ -12,6 +36,9 @@ export function make(lib){
      *   - "true"
      *   - "yes"
      * (case-insensitive for strings)
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function intentTrue(val) {
         const t = typeof val;
@@ -35,6 +62,9 @@ export function make(lib){
      *   - "false"
      *   - "no"
      * (case-insensitive for strings)
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function intentFalse(val) {
         const t = typeof val;
@@ -49,6 +79,9 @@ export function make(lib){
 
     /**
      * Is the value a real boolean (true or false)?
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function is(val) {
         return typeof val === 'boolean';
@@ -61,6 +94,9 @@ export function make(lib){
      *   - a boolean, OR
      *   - an affirmative literal, OR
      *   - a negative literal
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function isIntent(val) {
         return is(val) || intentTrue(val) || intentFalse(val);
@@ -71,6 +107,9 @@ export function make(lib){
      *
      * Returns true only if the value === true.
      * All other values return false.
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function to(val) {
         return is(val) ? val : false;
@@ -81,6 +120,9 @@ export function make(lib){
      *
      * Returns true only if the value explicitly encodes affirmative intent.
      * All other values (including negative intent) return false.
+     *
+     * @param {*} val
+     * @returns {boolean}
      */
     function byIntent(val) {
         return intentTrue(val);
@@ -88,6 +130,9 @@ export function make(lib){
 
     // ──────────────────────────────────────────────────────────────
 
+    /**
+     * Public dispatch surface for `lib.bool`.
+     */
     return {
         // Intent detectors
         intentTrue,

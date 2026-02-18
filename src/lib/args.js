@@ -12,7 +12,16 @@
  * - Behavior is permissive and loosely validated.
  * - Intended for internal convenience, not strict argument validation.
  */
-
+/**
+ * Build the `lib.args` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   slice: Function,
+ *   parse: Function,
+ *   isArguments: Function
+ * }}
+ */
 export function make(lib){
     /**
      * Parse a positional argument list into a hash.
@@ -68,12 +77,15 @@ export function make(lib){
     //parseArgs(args, {req: " ", opt:" ",arg: 1|0,pop:1|0}
     function parse(args, def, opts){
 	let out = {}, defOpts = {pop:1, arg:0};
+	
 	opts = lib.hash.merge(defOpts, lib.hash.to(opts,'parms'));
 	def = lib.hash.to(def);
-	args = lib.array.to(slice(args)); //convert potential 'Arguments' to array
-	const parms = lib.array.to(opts['parms'], /\s+/);
-	const req = lib.array.to(opts['req'], /\s+/);	
-	//console.log('>>',parms,req,opts['req'],'<<');
+	//console.log(args);
+	args = lib.hash.is(args) && !isArguments(args) ?lib.array.to(args) : lib.array.to(slice(args)); //convert potential 'Arguments' to array
+	//console.log(args);
+	const parms = lib.array.to(opts['parms'], {split:/\s+/,trim:true});
+	const req = lib.array.to(opts['req'], {split:/\s+/,trim:true});	
+	//console.log('>>',args, parms,req,opts['req'],'<<');
 	out = (opts.pop && lib.utils.baseType(args[args.length-1],'object') && !lib.dom.isDom(args[args.length-1]))?args.pop():{};
 	out = lib.hash.merge(def,out);
 	for (let i =0; i < parms.length; i++){
@@ -131,6 +143,9 @@ export function make(lib){
 	return Object.prototype.toString.call( item ) === '[object Arguments]';
     }
     
+    /**
+     * Public dispatch surface for `lib.args`.
+     */
     return  {	slice,parse,isArguments    };
 }
 export default make;

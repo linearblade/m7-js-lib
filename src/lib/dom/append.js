@@ -1,4 +1,35 @@
 //$SECTION -LIB.DOM.APPEND
+/**
+ * DOM insertion/removal helpers.
+ *
+ * Purpose:
+ * - Normalize element/target references
+ * - Provide consistent positional insert APIs
+ * - Expose convenience aliases for adjacent insertion points
+ *
+ * Environment:
+ * - Browser DOM required (`document`, node parent/child APIs).
+ */
+/**
+ * Build the `lib.dom.append` namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   before: Function,
+ *   after: Function,
+ *   prepend: Function,
+ *   append: Function,
+ *   beforeBegin: Function,
+ *   afterBegin: Function,
+ *   beforeEnd: Function,
+ *   afterEnd: Function,
+ *   adjacent: Function,
+ *   replace: Function,
+ *   remove: Function,
+ *   empty: Function,
+ *   resolveTarget: Function
+ * }}
+ */
 export function make(lib) {
     /**
      * Resolve a target-ish input into a DOM Element.
@@ -43,6 +74,13 @@ export function make(lib) {
         return resolveTarget(e);
     }
 
+    /**
+     * Insert `e` before `target`.
+     *
+     * @param {*} e
+     * @param {*} target
+     * @returns {Element|null}
+     */
     function before(e, target) {
         e = resolveElement(e);
         target = resolveTarget(target);
@@ -51,6 +89,13 @@ export function make(lib) {
         return e;
     }
 
+    /**
+     * Insert `e` after `target`.
+     *
+     * @param {*} e
+     * @param {*} target
+     * @returns {Element|null}
+     */
     function after(e, target) {
         e = resolveElement(e);
         target = resolveTarget(target);
@@ -68,6 +113,13 @@ export function make(lib) {
         return e;
     }
 
+    /**
+     * Insert `e` as first child of `target`.
+     *
+     * @param {*} e
+     * @param {*} target
+     * @returns {Element|null}
+     */
     function prepend(e, target) {
         e = resolveElement(e);
         target = resolveTarget(target);
@@ -79,6 +131,13 @@ export function make(lib) {
         return e;
     }
 
+    /**
+     * Insert `e` as last child of `target`.
+     *
+     * @param {*} e
+     * @param {*} target
+     * @returns {Element|null}
+     */
     function append(e, target) {
         e = resolveElement(e);
         target = resolveTarget(target);

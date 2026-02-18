@@ -1,9 +1,36 @@
 //$SECTION -LIB.DOM.CREATE
-
+/**
+ * DOM element factory helpers.
+ *
+ * Purpose:
+ * - Build `<script>`, `<link>`, and generic elements
+ * - Apply attribute maps with legacy-friendly event attribute handling
+ *
+ * Environment:
+ * - Browser DOM required (`document` + `addEventListener` APIs).
+ */
+/**
+ * Build the `lib.dom.create` namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   css: Function,
+ *   link: Function,
+ *   js: Function,
+ *   element: Function
+ * }}
+ */
 export function make(lib) {
     // module-private (don’t use `this` for caching; keep ES module semantics clean)
     const special = {};
 
+    /**
+     * Initialize special attribute handlers once.
+     *
+     * Current special handlers:
+     * - `load`, `error`, `click` -> convert attribute value into listener function
+     *   via `lib.func.get` and attach through `addEventListener(..., true)`.
+     */
     function ensureSpecial() {
         if (special._init) return;
 
@@ -20,6 +47,13 @@ export function make(lib) {
         special._init = true;
     }
 
+    /**
+     * Create a script element with default JS attributes merged with caller attrs.
+     *
+     * @param {string} url
+     * @param {Object} [attrs]
+     * @returns {HTMLScriptElement}
+     */
     function js(url, attrs) {
         if (!lib.hash.is(attrs)) attrs = {};
         attrs = lib.hash.merge(
@@ -33,6 +67,13 @@ export function make(lib) {
         return element("script", attrs);
     }
 
+    /**
+     * Create a stylesheet link element with default CSS attributes merged with caller attrs.
+     *
+     * @param {string} url
+     * @param {Object} [attrs]
+     * @returns {HTMLLinkElement}
+     */
     function css(url, attrs) {
         if (!lib.hash.is(attrs)) attrs = {};
         attrs = lib.hash.merge(
@@ -46,6 +87,20 @@ export function make(lib) {
         return element("link", attrs);
     }
 
+    /**
+     * Create a generic element and apply attributes/content.
+     *
+     * Semantics:
+     * - `attrs` is normalized to hash.
+     * - Known special keys (`load`, `error`, `click`) become event listeners.
+     * - Other keys are applied with `setAttribute`.
+     * - `content` (when non-nullish) is assigned to `textContent`.
+     *
+     * @param {string} tag
+     * @param {Object} [attrs]
+     * @param {*} [content]
+     * @returns {Element}
+     */
     function element(tag, attrs, content) {
         ensureSpecial();
 
@@ -71,6 +126,9 @@ export function make(lib) {
         return e;
     }
 
+    /**
+     * Public dispatch surface for `lib.dom.create`.
+     */
     return {
         css: css,
         link: css,
@@ -80,4 +138,3 @@ export function make(lib) {
 }
 
 export default make;
-

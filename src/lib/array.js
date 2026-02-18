@@ -6,6 +6,20 @@
  * Export style:
  *   make(lib) -> { append, subtract, is, to }
  */
+/**
+ * Build the `lib.array` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   append: Function,
+ *   subtract: Function,
+ *   trim: Function,
+ *   is: Function,
+ *   to: Function,
+ *   len: Function,
+ *   filterStrings: Function
+ * }}
+ */
 export function make(lib) {
 
 
@@ -18,12 +32,31 @@ export function make(lib) {
     function is(arg) {
 	return (typeof arg === 'object') && Array.isArray(arg);
     }
-    //legacy. leave it.
+    /**
+     * Legacy single-item wrapper.
+     *
+     * Contract:
+     * - Falsy input -> []
+     * - Array input -> input as-is
+     * - Otherwise -> [input]
+     *
+     * @deprecated Prefer `to()`.
+     * @param {*} list
+     * @returns {Array}
+     */
     function toArrayold (list){
 	if (!list)return [];
 	return (is(list))?list:[list] ;
     }
     
+    /**
+     * Legacy coercion helper with optional split for strings.
+     *
+     * @deprecated Prefer `to()`.
+     * @param {*} list
+     * @param {string|RegExp} [split]
+     * @returns {Array}
+     */
     function to_old(list, split) {
         if (!list) return [];
         if (is(list)) return list;
@@ -96,13 +129,13 @@ export function make(lib) {
 	
 	let out;
 
-	//its not an array here, so just return.
+	// Not an array and not a string: wrap as single entry.
 	if (!lib.str.is(list))
 	    return [list];
 	
         if (doTrim) list = list.trim();
         out = split ? list.split(split) : [list];
-	//now its definately an array.
+	// At this point output is guaranteed to be an array.
 	return doTrim?arrayTrim(out) : out;
     }
 
@@ -269,6 +302,9 @@ export function make(lib) {
 
 	return out;
     }    
+    /**
+     * Public dispatch surface for `lib.array`.
+     */
     return {
         append: arrayAppend,
         subtract: arraySubtract,

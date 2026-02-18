@@ -1,8 +1,30 @@
 //lib/str.js
-
+/**
+ * String normalization helpers.
+ *
+ * Purpose:
+ * - Provide permissive string coercion utilities
+ * - Offer predictable lowercase and comment-stripping helpers
+ * - Supply small character-count utilities used by parsers/validators
+ */
+/**
+ * Build the `lib.str` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   is: Function,
+ *   lc: Function,
+ *   to: Function,
+ *   stripComments: Function,
+ *   countChars: Function
+ * }}
+ */
 export function make(lib){
     /**
-       simple alias to base type.
+     * Determine whether a value is a string primitive.
+     *
+     * @param {*} v
+     * @returns {boolean}
      */
     function is(v) {
 	return typeof v === 'string';
@@ -162,8 +184,11 @@ export function make(lib){
 	return count;
     }
 
-    
 
+
+    /**
+     * Public dispatch surface for `lib.str`.
+     */
     return {
 	is,lc,to,stripComments,countChars
     };

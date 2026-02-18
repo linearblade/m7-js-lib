@@ -1,4 +1,32 @@
+/**
+ * Numeric coercion and guardrail helpers.
+ *
+ * Purpose:
+ * - Convert loose input into bounded numeric forms
+ * - Provide deterministic fallback behavior for malformed numeric text
+ */
+/**
+ * Build the `lib.number` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{ clamp: Function, toInt: Function }}
+ */
 export function make(lib) {
+    /**
+     * Clamp a value between optional bounds.
+     *
+     * Contract:
+     * - Coerces numeric strings for `n`, `min`, and `max`.
+     * - If `n` is not a finite number after coercion, returns `def`.
+     * - If `def` is omitted, defaults to `min`.
+     * - Ignores invalid `min`/`max` bounds instead of throwing.
+     *
+     * @param {*} n
+     * @param {*} min
+     * @param {*} max
+     * @param {*} [def]
+     * @returns {*|number}
+     */
     function clamp(n, min, max, def) {
 	// default fallback
 	if (def === undefined) def = min;
@@ -30,6 +58,20 @@ export function make(lib) {
 
 	return out;
     }
+
+    /**
+     * Parse/coerce a value into an integer using strict legacy-safe rules.
+     *
+     * Semantics:
+     * - Accepts numbers and numeric-ish strings only.
+     * - Rejects strings with invalid characters, misplaced signs, or multiple dots/signs.
+     * - Truncates finite numeric inputs (toward zero).
+     * - Special policy: leading-dot values like ".5" or "-.5" return `0`.
+     *
+     * @param {*} val
+     * @param {*} [def=0] Fallback when conversion fails.
+     * @returns {number|*}
+     */
     function toInt(val, def = 0) {
 	const type = typeof val;
 	if (!["number", "string"].includes(type)) return def;
@@ -70,6 +112,11 @@ export function make(lib) {
     }
     
 
+    /**
+     * Public dispatch surface for `lib.number`.
+     *
+     * @type {{ clamp: Function, toInt: Function }}
+     */
     const disp = {
 	clamp,
 	toInt

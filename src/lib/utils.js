@@ -1,3 +1,33 @@
+/**
+ * Cross-module normalization helpers.
+ *
+ * Purpose:
+ * - Provide common type/emptiness/link classification utilities
+ * - Expose stable aliases into other helper namespaces
+ * - Keep call sites linear via total-function coercion patterns
+ */
+/**
+ * Build the `lib.utils` helper namespace.
+ *
+ * @param {Object} lib
+ * @returns {{
+ *   isArray: Function,
+ *   toArray: Function,
+ *   isHash: Function,
+ *   toHash: Function,
+ *   deepCopy: Function,
+ *   isScalar: Function,
+ *   toString: Function,
+ *   baseType: Function,
+ *   isEmpty: Function,
+ *   linkType: Function,
+ *   clamp: Function,
+ *   toNumber: Function,
+ *   getFunction: Function,
+ *   stripComments: Function,
+ *   lc: Function
+ * }}
+ */
 export function make(lib) {
 
     
@@ -294,6 +324,9 @@ export function make(lib) {
 	return Number.isFinite(n) ? n : def;
     }
     
+    /**
+     * Public dispatch surface for `lib.utils`.
+     */
     return {
 	isArray      : lib.array.is,
 	toArray      : lib.array.to,
