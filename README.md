@@ -26,6 +26,7 @@ If you are new to the project, the recommended reading order is:
 Related documents:
 
 * **Entrypoint Contract (`index.js`, `auto.js`)** -> [docs/entrypoints-contract.md](docs/entrypoints-contract.md)
+* **LLM API Contract** -> [docs/api/M7_JS_LIB_API_CONTRACT.md](docs/api/M7_JS_LIB_API_CONTRACT.md)
 * **Philosophy** -> [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)
 * **Use Policy** -> [docs/USE_POLICY.md](docs/USE_POLICY.md)
 * **AI Disclosure** -> [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md)

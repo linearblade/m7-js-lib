@@ -13,6 +13,7 @@ This API reference is organized as a 3-level split:
 * `src/index.js` -> explicit side-effect-free singleton entry
 * `src/auto.js` -> convenience auto-init entry
 * Singleton contract -> [../entrypoints-contract.md](../entrypoints-contract.md)
+* LLM API contract -> [./M7_JS_LIB_API_CONTRACT.md](./M7_JS_LIB_API_CONTRACT.md)
 
 ## Module References
 
@@ -36,6 +37,7 @@ This API reference is organized as a 3-level split:
 
 * Modules index -> [./modules/INDEX.md](./modules/INDEX.md)
 * Function index -> [./functions/INDEX.md](./functions/INDEX.md)
+* LLM API contract -> [./M7_JS_LIB_API_CONTRACT.md](./M7_JS_LIB_API_CONTRACT.md)
 * Usage TOC -> [../usage/TOC.md](../usage/TOC.md)
 * Architecture Index -> [../architecture/INDEX.md](../architecture/INDEX.md)
 * Philosophy -> [../PHILOSOPHY.md](../PHILOSOPHY.md)
@@ -43,4 +45,3 @@ This API reference is organized as a 3-level split:
 ## Canonical Source
 
 Per-function behavior contracts are source-of-truth in JSDoc blocks inside `src/lib/*` and `src/lib/dom/*`.
-

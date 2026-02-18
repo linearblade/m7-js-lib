@@ -29,6 +29,7 @@ If you are new, read top-to-bottom.
 ## API and Architecture
 
 * **API Index** -> [../api/INDEX.md](../api/INDEX.md)
+* **LLM API Contract** -> [../api/M7_JS_LIB_API_CONTRACT.md](../api/M7_JS_LIB_API_CONTRACT.md)
 * **Architecture Index** -> [../architecture/INDEX.md](../architecture/INDEX.md)
 
 ---
