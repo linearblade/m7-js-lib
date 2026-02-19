@@ -20,7 +20,7 @@
  * }}
  */
 
-import interp from './interp.js';
+import make_interp from './interp.js';
 export function make(lib){
     /**
      * Determine whether a value is a string primitive.
@@ -192,7 +192,8 @@ export function make(lib){
      * Public dispatch surface for `lib.str`.
      */
     return {
-	is,lc,to,stripComments,countChars,interp
+	is,lc,to,stripComments,countChars,
+	interp:make_interp(lib)
     };
     
 

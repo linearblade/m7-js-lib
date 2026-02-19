@@ -1,19 +1,19 @@
 // index.js
 import make_boot from "./lib/_boot.js";
 
-import make_bool from "./lib/bool.js";
-import make_array from "./lib/array.js";
-import make_hash from "./lib/hash.js";
-import make_number from "./lib/number.js";
+import make_bool    from "./lib/bool.js";
+import make_array   from "./lib/array.js";
+import make_hash    from "./lib/hash.js";
+import make_number  from "./lib/number.js";
 
-import make_utils from "./lib/utils.js";
-import make_str from "./lib/str.js";
-import make_func from "./lib/func.js";
+import make_utils   from "./lib/utils.js";
+import make_str     from "./lib/str/index.js";
+import make_func    from "./lib/func.js";
 
-import make_dom from "./lib/dom/index.js";
-import make_args from "./lib/args.js";
+import make_dom     from "./lib/dom/index.js";
+import make_args    from "./lib/args.js";
 
-import make_http from "./lib/_http.js";
+import make_http    from "./lib/_http.js";
 import make_service from "./lib/service.js";
 import make_require from './lib/require.js';
 const lib = {};
