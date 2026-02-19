@@ -2,9 +2,12 @@ const MOD = "[str.interp]";
 let lastNamespace = null;
 
 export function make(lib) {
+
+    /*
+    //unnecessary after inclusion. these will exist after construction of lib
     if (!lib || !lib.hash || !lib.array || !lib.func) {
         throw new Error(`${MOD} requires lib.hash, lib.array, and lib.func.`);
-    }
+    }*/
 
     function escapeRegExp(string) {
         return String(string).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
