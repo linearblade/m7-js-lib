@@ -19,6 +19,8 @@
  *   countChars: Function
  * }}
  */
+
+import interp from './interp.js';
 export function make(lib){
     /**
      * Determine whether a value is a string primitive.
@@ -190,7 +192,7 @@ export function make(lib){
      * Public dispatch surface for `lib.str`.
      */
     return {
-	is,lc,to,stripComments,countChars
+	is,lc,to,stripComments,countChars,interp
     };
     
 
