@@ -82,6 +82,7 @@ Function pages are grouped by module.
   * [to](./str/to.md) - Coerce a value to a string (legacy-safe, normalized).
   * [stripComments](./str/stripComments.md) - Strip JavaScript-style comments from source text.
   * [countChars](./str/countChars.md) - Counts the total occurrences of one or more characters in a string.
+  * [interp](./str/interp.md) - Interpolate `${...}` tokens with hash/eval resolution modes.
 * **lib.utils**
   * [isArray](./utils/isArray.md) - Alias passthrough to `lib.array.is`.
   * [toArray](./utils/toArray.md) - Alias passthrough to `lib.array.to`.

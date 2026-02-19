@@ -2,7 +2,7 @@
 
 [README](../../../README.md) -> [API Index](../INDEX.md) -> [Modules Index](./INDEX.md) -> [lib.str](./STR.md)
 
-Source: `src/lib/str.js`
+Source: `src/lib/str/index.js`
 
 String coercion and lightweight text utility helpers.
 
@@ -13,10 +13,10 @@ String coercion and lightweight text utility helpers.
 * [`to`](../functions/str/to.md) - Coerce a value to a string (legacy-safe, normalized).
 * [`stripComments`](../functions/str/stripComments.md) - Strip JavaScript-style comments from source text.
 * [`countChars`](../functions/str/countChars.md) - Counts the total occurrences of one or more characters in a string.
+* [`interp`](../functions/str/interp.md) - Interpolate `${...}` tokens with hash/eval resolution modes.
 
 ## Related
 
 * Module index -> [./INDEX.md](./INDEX.md)
 * Function index -> [../functions/INDEX.md](../functions/INDEX.md)
 * API index -> [../INDEX.md](../INDEX.md)
-

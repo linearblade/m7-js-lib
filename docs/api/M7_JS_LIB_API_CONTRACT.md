@@ -279,6 +279,7 @@ Additionally exposes:
 * `to`
 * `stripComments`
 * `countChars`
+* `interp`
 
 `lib.utils`
 
@@ -512,6 +513,7 @@ Primary usage:
 lib.str.to(12);                          // "12"
 lib.str.lc("HELLO");                     // "hello"
 lib.str.countChars("banana", ["a","n"]); // 5
+lib.str.interp("Hello ${name}", { name: "Ada" }); // "Hello Ada"
 ```
 
 Key function semantics:
@@ -523,6 +525,10 @@ Key function semantics:
 * `lc(value, force)`: lowercase helper
 * `stripComments(text, opts)`: removes JS-style comments by mode
 * `countChars(str, chars)`: counts target characters
+* `interp(tpl, scheme, opts)`:
+  * interpolates `${...}` tokens using hash lookup or eval fallback
+  * supports output shaping via `opts.tpl`, `opts.quote`, `opts.eval`
+  * supports raw value passthrough when `opts.literal` and tpl is exactly one token
 
 ### 8) `lib.func` (function lookup and composition)
 
