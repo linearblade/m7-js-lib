@@ -16,6 +16,7 @@ import make_args    from "./lib/args.js";
 import make_http    from "./lib/_http.js";
 import make_service from "./lib/service.js";
 import make_require from './lib/require.js';
+import make_request from "./lib/request/index.js";
 const lib = {};
 const state = {
     initialized: false,
@@ -98,6 +99,7 @@ export function init(opts = {}) {
         // ─────────────────────────────────────────
         lib.service = make_service(lib);
         lib.require = make_require(lib);
+        lib.request = make_request(lib);
 
         // ─────────────────────────────────────────
         // Args helper (depends on hash/array/dom/utils)

@@ -130,6 +130,17 @@ Function pages are grouped by module.
   * [remove](./dom-append/remove.md) - Remove target from DOM.
   * [empty](./dom-append/empty.md) - Empty a target (remove all children).
   * [resolveTarget](./dom-append/resolveTarget.md) - Resolve a target-ish input into a DOM Element.
+* **lib.dom.form**
+  * [submit](./dom-form/submit.md) - Submit from a trigger or collected payload through native or request-envelope flow.
+  * [collect](./dom-form/collect.md) - Alias of `collectForm`.
+  * [collectForm](./dom-form/collectForm.md) - Collect a form into `{ url, method, parms, form, event }`.
+  * [toJson](./dom-form/toJson.md) - Convert trigger/collected form into JSON-like object (inflated or flat).
+  * [makeUrl](./dom-form/makeUrl.md) - Build final URL, appending query params for GET.
+  * [makeHeader](./dom-form/makeHeader.md) - Build request headers from method/body/content type inputs.
+  * [makeBody](./dom-form/makeBody.md) - Build request body using JSON/urlencoded/form-data rules.
+  * [getDomKV](./dom-form/getDomKV.md) - Read one element into `{key,value}` entry (or list of entries).
+  * [arrayToQS](./dom-form/arrayToQS.md) - Convert key/value tuple list into query string.
+  * [arrayToHash](./dom-form/arrayToHash.md) - Convert key/value tuple list into object with repeat keys as arrays.
 
 ## Related
 

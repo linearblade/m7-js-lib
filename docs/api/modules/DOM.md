@@ -24,10 +24,10 @@ DOM element resolution, attribute/property access, and helper entrypoints.
 
 * `create` -> [lib.dom.create](./DOM_CREATE.md)
 * `append` -> [lib.dom.append](./DOM_APPEND.md)
+* `form` -> [lib.dom.form](./DOM_FORM.md)
 
 ## Related
 
 * Module index -> [./INDEX.md](./INDEX.md)
 * Function index -> [../functions/INDEX.md](../functions/INDEX.md)
 * API index -> [../INDEX.md](../INDEX.md)
-

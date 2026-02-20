@@ -25,9 +25,9 @@ Each module page provides:
 * [lib.dom](./DOM.md) - DOM element resolution, attribute/property access, and helper entrypoints.
 * [lib.dom.create](./DOM_CREATE.md) - DOM element factory helpers for scripts, styles, and generic nodes.
 * [lib.dom.append](./DOM_APPEND.md) - DOM insertion and replacement helpers with position-based placement.
+* [lib.dom.form](./DOM_FORM.md) - Form collection and lightweight submit orchestration helpers for DOM forms.
 
 ## Related
 
 * Function index -> [../functions/INDEX.md](../functions/INDEX.md)
 * API index -> [../INDEX.md](../INDEX.md)
-

@@ -1,7 +1,7 @@
 //$SECTION -LIB.DOM
 import make_dom_create from './create.js';
 import make_dom_append from './append.js';
-
+import make_dom_form   from './form/index.js';
 /**
  * DOM interaction namespace.
  *
@@ -459,7 +459,8 @@ export function make(lib) {
 	filterAttributes,
 	create: make_dom_create(lib),
 	append: make_dom_append(lib),
-	attempt : attemptDom
+	attempt : attemptDom,
+	form : make_dom_form(lib)
     };
 }
 
