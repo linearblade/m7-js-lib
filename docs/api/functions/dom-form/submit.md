@@ -29,7 +29,7 @@ Submit a form from either a DOM trigger element or an already collected payload.
 * `opts.structured`: JSON mode shape control (`true` inflates dotted keys).
 * `opts.url`: URL override.
 * `opts.method`: method override.
-* `opts.response`: response parse hint (`json` forces JSON parse).
+* `opts.response`: response parser enum (`auto`, `json`, `text`); unknown values fall back to `auto`.
 * `opts.valueAsBody`: key to extract and send as whole body.
 * `opts.credentials`: forwarded into request envelope.
 * `opts.timeoutMs`: forwarded into request envelope.
@@ -38,6 +38,7 @@ Submit a form from either a DOM trigger element or an already collected payload.
 
 * Runs in fixed order: confirm -> header -> body -> on -> submit.
 * Uses `makeUrl`, `makeHeader`, `makeBody` helpers to build request inputs.
+* Normalizes `opts.response` to explicit parser modes only (`auto`/`json`/`text`), defaulting to `auto`.
 * Builds envelope via `lib.request.makeEnvelope`.
 * Sends via `lib.request.send` through internal `_handleSubmit`.
 * Returns normalized payload with `ok`, `status`, `statusText`, `result`, `error`, `data`, and `opts`.
@@ -53,4 +54,3 @@ Submit a form from either a DOM trigger element or an already collected payload.
 * `makeBody` -> [./makeBody.md](./makeBody.md)
 * `makeUrl` -> [./makeUrl.md](./makeUrl.md)
 * API index -> [../../INDEX.md](../../INDEX.md)
-

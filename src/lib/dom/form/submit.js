@@ -295,7 +295,7 @@ export function make(lib, deps = {}) {
      * - `structured` controls JSON shaping (`true` => inflate dotted keys)
      * - `url` override target URL
      * - `method` override HTTP method
-     * - `response` expected response parser hint (`json` -> force JSON parse; otherwise auto/text)
+     * - `response` expected response parser enum (`auto`|`json`|`text`; unknown values fall back to `auto`)
      * - `valueAsBody` key name to send as whole body value
      * - `credentials` forwarded into request envelope
      * - `timeoutMs` forwarded into request envelope
@@ -341,9 +341,13 @@ export function make(lib, deps = {}) {
 	const method = optsMethod || (data.method || 'POST').toUpperCase();
 	const url = makeUrl(data, { method, url: optsUrl });
 
-	const responseParse =
-	      (expectResponse === 'json') ? 'json' :
-	      (expectResponse ? 'text' : 'auto');
+	// Explicit parser enum only: auto | json | text (unknown => auto).
+	const rawResponse = lib.str.to(expectResponse, true).trim().toLowerCase();
+	const responseParse = (
+	    rawResponse === 'json' ||
+	    rawResponse === 'text' ||
+	    rawResponse === 'auto'
+	) ? rawResponse : 'auto';
 
 	const headers = makeHeader({
 	    method,

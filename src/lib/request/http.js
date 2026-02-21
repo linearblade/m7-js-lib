@@ -60,9 +60,98 @@ export function make(lib) {
 
     function getFetchFn() {
         if (typeof fetch === "function") return fetch;
+        const envRoot = lib.hash.get(lib, "_env.root");
         const envFetch = lib.hash.get(lib, "_env.root.fetch");
-        if (typeof envFetch === "function") return envFetch.bind(lib.hash.get(lib, "_env.root"));
-        throw new Error("[lib.request.http.send] fetch is not available in this runtime");
+        if (typeof envFetch === "function") return envFetch.bind(envRoot);
+        return null;
+    }
+
+    function parseXhrHeaders(xhr) {
+        const out = {};
+        const raw = (xhr && typeof xhr.getAllResponseHeaders === "function")
+            ? xhr.getAllResponseHeaders()
+            : "";
+
+        if (!raw) return out;
+
+        const lines = raw.split(/\r?\n/);
+        for (const line of lines) {
+            if (!line) continue;
+            const idx = line.indexOf(":");
+            if (idx < 1) continue;
+            const key = line.slice(0, idx).trim().toLowerCase();
+            const value = line.slice(idx + 1).trim();
+            out[key] = value;
+        }
+
+        return out;
+    }
+
+    function normalizeXhrResponse(xhr, url) {
+        return {
+            ok: !!(xhr && xhr.status >= 200 && xhr.status < 400),
+            status: xhr && typeof xhr.status === "number" ? xhr.status : 0,
+            statusText: (xhr && xhr.statusText) ? xhr.statusText : "",
+            url: (xhr && xhr.responseURL) ? xhr.responseURL : (url || null),
+            headers: parseXhrHeaders(xhr),
+            body: (xhr && ("jsonData" in xhr) && xhr.jsonData !== undefined)
+                ? xhr.jsonData
+                : (xhr ? xhr.responseText : undefined),
+            redirected: false,
+        };
+    }
+
+    function mapHeadersToArray(headers) {
+        const out = [];
+        for (const key in headers) {
+            if (!Object.prototype.hasOwnProperty.call(headers, key)) continue;
+            out.push({ name: key, value: headers[key] });
+        }
+        return out;
+    }
+
+    function resolveResponseParseMode(responseCfg) {
+        return lib.str.to(lib.hash.get(responseCfg, "parse"), true).trim().toLowerCase() || "auto";
+    }
+
+    async function sendWithXhr({ envelope, url, method, headers, body, encoding, responseCfg, timeoutMs }) {
+        const http = lib._http;
+        if (!http || typeof http.request !== "function") return undefined;
+
+        const creds = lib.hash.to(lib.hash.get(envelope, "credentials"));
+        const withCreds = lib.bool.yes(creds.withCredentials) || lib.str.to(creds.mode, true).trim() === "include";
+        const responseParse = resolveResponseParseMode(responseCfg);
+
+        return await new Promise((resolve, reject) => {
+            let timer = null;
+            try {
+                const req = http.request(url, {
+                    method,
+                    body,
+                    header: mapHeadersToArray(headers),
+                    urlencoded: encoding === "urlencoded" ? 1 : 0,
+                    json: responseParse === "json" ? 1 : 0,
+                    credentials: withCreds,
+                    load: function (xhr) {
+                        if (timer) clearTimeout(timer);
+                        resolve(normalizeXhrResponse(xhr, url));
+                    },
+                    error: function (xhr) {
+                        if (timer) clearTimeout(timer);
+                        resolve(normalizeXhrResponse(xhr, url));
+                    }
+                });
+
+                if (timeoutMs > 0 && req && typeof req.abort === "function") {
+                    timer = setTimeout(() => {
+                        try { req.abort(); } catch (err) {}
+                    }, timeoutMs);
+                }
+            } catch (err) {
+                if (timer) clearTimeout(timer);
+                reject(err);
+            }
+        });
     }
 
     function normalizeEncoding(request, headers, body) {
@@ -91,6 +180,7 @@ export function make(lib) {
         };
 
         const mode = String(encoding || "").toLowerCase();
+        const headerCT = String(outHeaders["Content-Type"] || outHeaders["content-type"] || "").toLowerCase();
         if (mode === "json" || mode === "application/json") {
             if (typeof outBody !== "string") outBody = JSON.stringify(outBody);
             setHeaderIfMissing("Content-Type", "application/json");
@@ -126,7 +216,7 @@ export function make(lib) {
             return { body: outBody, headers: outHeaders };
         }
 
-        if (lib.hash.is(outBody)) {
+        if (lib.hash.is(outBody) || Array.isArray(outBody) || headerCT.includes("application/json")) {
             outBody = JSON.stringify(outBody);
             setHeaderIfMissing("Content-Type", "application/json");
         }
@@ -229,21 +319,48 @@ export function make(lib) {
 
         const fetchFn = getFetchFn();
         let payload;
-        try {
-            const response = await fetchFn(url, requestInit);
-            payload = await normalizeResponse(response);
-        } catch (err) {
+        let fetchErr = null;
+
+        if (fetchFn) {
+            try {
+                const response = await fetchFn(url, requestInit);
+                payload = await normalizeResponse(response);
+            } catch (err) {
+                fetchErr = err;
+            } finally {
+                if (timer) clearTimeout(timer);
+            }
+        } else if (timer) {
+            clearTimeout(timer);
+        }
+
+        if (payload === undefined) {
+            try {
+                payload = await sendWithXhr({
+                    envelope,
+                    url,
+                    method,
+                    headers: encoded.headers,
+                    body: encoded.body,
+                    encoding,
+                    responseCfg: lib.hash.get(envelope, "response"),
+                    timeoutMs,
+                });
+            } catch (xhrErr) {
+                fetchErr = fetchErr || xhrErr;
+            }
+        }
+
+        if (payload === undefined) {
             payload = {
                 ok: false,
                 status: 0,
-                statusText: err?.message || "Network Error",
+                statusText: fetchErr?.message || "Network Error",
                 url,
                 headers: {},
                 body: null,
-                error: err,
+                error: fetchErr || null,
             };
-        } finally {
-            if (timer) clearTimeout(timer);
         }
 
         const out = resolveResponseOutput(payload, lib.hash.get(envelope, "response"));
