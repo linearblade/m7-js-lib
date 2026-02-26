@@ -36,9 +36,26 @@ lib.func.parseList("a:1,2; b:x=1", { args: "kv"  }); // args is always kv object
 * Invalid rows throw an Error with row index and value context.
 * Output rows always include operation key (`fn` or configured key), `pos`, `kv`, and `args`.
 
+## Lazy Value Evaluation
+
+If you want lazy/runtime value expansion, keep `parseList` as a structural parser and
+evaluate arg values afterward with `lib.str.interp` using `${...}` tokens.
+
+```js
+const rows = lib.func.parseList("setTitle:${page.title};show:hero=${flags.hero}", { args: "kv" });
+
+for (const row of rows) {
+  if (lib.hash.is(row.args)) {
+    for (const key in row.args) {
+      const v = row.args[key];
+      if (lib.str.is(v)) row.args[key] = lib.str.interp(v, scope); // scope is your runtime object
+    }
+  }
+}
+```
+
 ## Related
 
 * Module page -> [../../modules/FUNC.md](../../modules/FUNC.md)
 * Module function list -> [../../functions/INDEX.md](../../functions/INDEX.md)
 * API index -> [../../INDEX.md](../../INDEX.md)
-
