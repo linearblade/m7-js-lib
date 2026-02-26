@@ -1,4 +1,4 @@
-//lib/args.js
+//lib/args/index.js
 /**
  * Argument parsing helpers.
  *

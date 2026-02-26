@@ -42,6 +42,7 @@ Function pages are grouped by module.
   * [postWrap](./func/postWrap.md) - Wrap a function chain with post-applied arguments.
   * [preWrap](./func/preWrap.md) - Wrap a function chain with pre-applied arguments.
   * [get](./func/get.md) - Resolve a function target.
+  * [parseList](./func/parseList.md) - Parse a compact function-list DSL into normalized call records.
 * **lib.hash**
   * [get](./hash/get.md) - Safely get a nested value from an object using a dot-path.
   * [set](./hash/set.md) - Set a deep property on an object using a dotted path, creating missing intermediate objects as needed.

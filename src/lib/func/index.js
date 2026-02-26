@@ -1,4 +1,5 @@
 //lib.func
+import make_parse_list from "./parseList.js";
 /**
  * Function resolution and composition helpers.
  *
@@ -31,7 +32,8 @@
  *   wrapper: Function,
  *   postWrap: Function,
  *   preWrap: Function,
- *   get: Function
+ *   get: Function,
+ *   parseList: Function
  * }}
  */
 export function make(lib){
@@ -41,6 +43,7 @@ export function make(lib){
      * @type {Function}
      */
     const DUMMY_FN = function () {};
+    const parseList = make_parse_list(lib);
 
     /**
      * Resolve a function target.
@@ -225,7 +228,8 @@ export function make(lib){
      *   wrapper: Function,
      *   postWrap: Function,
      *   preWrap: Function,
-     *   get: Function
+     *   get: Function,
+     *   parseList: Function
      * }}
      */
     const disp = {
@@ -233,7 +237,8 @@ export function make(lib){
 	wrapper : wrapper,
 	postWrap: postWrap,
 	preWrap: preWrap,
-	get : getFunction
+	get : getFunction,
+	parseList
     };
     return disp;
 }

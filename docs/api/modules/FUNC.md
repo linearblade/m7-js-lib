@@ -2,9 +2,9 @@
 
 [README](../../../README.md) -> [API Index](../INDEX.md) -> [Modules Index](./INDEX.md) -> [lib.func](./FUNC.md)
 
-Source: `src/lib/func.js`
+Source: `src/lib/func/index.js`
 
-Function lookup, wrapping, and composition helpers.
+Function lookup, wrapping, composition, and function-list parsing helpers.
 
 ## Exported Functions
 
@@ -13,10 +13,10 @@ Function lookup, wrapping, and composition helpers.
 * [`postWrap`](../functions/func/postWrap.md) - Wrap a function chain with post-applied arguments.
 * [`preWrap`](../functions/func/preWrap.md) - Wrap a function chain with pre-applied arguments.
 * [`get`](../functions/func/get.md) - Resolve a function target.
+* [`parseList`](../functions/func/parseList.md) - Parse a compact function-list DSL into normalized call records.
 
 ## Related
 
 * Module index -> [./INDEX.md](./INDEX.md)
 * Function index -> [../functions/INDEX.md](../functions/INDEX.md)
 * API index -> [../INDEX.md](../INDEX.md)
-
