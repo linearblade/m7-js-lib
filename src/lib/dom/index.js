@@ -2,6 +2,7 @@
 import make_dom_create from './create.js';
 import make_dom_append from './append.js';
 import make_dom_form   from './form/index.js';
+import make_dom_transform from './transform.js';
 /**
  * DOM interaction namespace.
  *
@@ -31,6 +32,8 @@ import make_dom_form   from './form/index.js';
  *   filterAttributes: Function,
  *   create: Object,
  *   append: Object,
+ *   form: Object,
+ *   transform: Object,
  *   attempt: Function
  * }}
  */
@@ -459,6 +462,7 @@ export function make(lib) {
 	filterAttributes,
 	create: make_dom_create(lib),
 	append: make_dom_append(lib),
+	transform: make_dom_transform(lib),
 	attempt : attemptDom,
 	form : make_dom_form(lib)
     };

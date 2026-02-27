@@ -26,6 +26,7 @@ Each module page provides:
 * [lib.dom.create](./DOM_CREATE.md) - DOM element factory helpers for scripts, styles, and generic nodes.
 * [lib.dom.append](./DOM_APPEND.md) - DOM insertion and replacement helpers with position-based placement.
 * [lib.dom.form](./DOM_FORM.md) - Form collection and lightweight submit orchestration helpers for DOM forms.
+* [lib.dom.transform](./DOM_TRANSFORM.md) - Declarative DOM mapping helpers for subtree and list data transforms.
 
 ## Related
 

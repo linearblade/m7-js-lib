@@ -25,6 +25,7 @@ DOM element resolution, attribute/property access, and helper entrypoints.
 * `create` -> [lib.dom.create](./DOM_CREATE.md)
 * `append` -> [lib.dom.append](./DOM_APPEND.md)
 * `form` -> [lib.dom.form](./DOM_FORM.md)
+* `transform` -> [lib.dom.transform](./DOM_TRANSFORM.md)
 
 ## Related
 

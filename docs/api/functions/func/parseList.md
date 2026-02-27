@@ -27,6 +27,14 @@ lib.func.parseList("show:hero=true", { fn: "op" });
 // Force args output shape
 lib.func.parseList("a:1,2; b:x=1", { args: "pos" }); // args is always positional array
 lib.func.parseList("a:1,2; b:x=1", { args: "kv"  }); // args is always kv object
+
+// Dot-path assignment into kv via lib.hash.set
+lib.func.parseList("cfg:a.b=1,a.c=2", { dot: true, args: "kv" });
+// kv => { a: { b: "1", c: "2" } }
+
+// Repeated key collection
+lib.func.parseList("cfg:foo=5,foo=4", { push: true, args: "kv" });
+// kv => { foo: ["5", "4"] }
 ```
 
 ## Notes
@@ -35,6 +43,10 @@ lib.func.parseList("a:1,2; b:x=1", { args: "kv"  }); // args is always kv object
 * Input may be string rows, hash rows, or a mixed array.
 * Invalid rows throw an Error with row index and value context.
 * Output rows always include operation key (`fn` or configured key), `pos`, `kv`, and `args`.
+* Hash rows with an existing `args` field keep that value; `parseList` does not overwrite it.
+* String-parsed rows always compute `args` from mode (`pos` / `kv` / `auto`).
+* `dot: true` (alias: `nested: true`) enables dot-path writes into `kv` via `lib.hash.set`.
+* `push: true` (alias: `repeat: true`) accumulates repeated key assignments into arrays.
 
 ## Lazy Value Evaluation
 

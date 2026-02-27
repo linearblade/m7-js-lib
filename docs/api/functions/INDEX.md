@@ -142,6 +142,9 @@ Function pages are grouped by module.
   * [getDomKV](./dom-form/getDomKV.md) - Read one element into `{key,value}` entry (or list of entries).
   * [arrayToQS](./dom-form/arrayToQS.md) - Convert key/value tuple list into query string.
   * [arrayToHash](./dom-form/arrayToHash.md) - Convert key/value tuple list into object with repeat keys as arrays.
+* **lib.dom.transform**
+  * [element](./dom-transform/element.md) - Bind a data scheme into one element subtree.
+  * [list](./dom-transform/list.md) - Clone a template for each row and apply `transformElement`.
 
 ## Related
 

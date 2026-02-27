@@ -314,6 +314,8 @@ Additionally exposes:
 * `attempt`
 * `create` (namespace)
 * `append` (namespace)
+* `form` (namespace)
+* `transform` (namespace)
 
 `lib.dom.create`
 
@@ -337,6 +339,24 @@ Additionally exposes:
 * `remove`
 * `empty`
 * `resolveTarget`
+
+`lib.dom.form`
+
+* `submit`
+* `collect` (alias)
+* `collectForm`
+* `toJson`
+* `makeUrl`
+* `makeBody`
+* `makeHeader`
+* `getDomKV`
+* `arrayToQS`
+* `arrayToHash`
+
+`lib.dom.transform`
+
+* `element`
+* `list`
 
 ---
 
@@ -597,7 +617,7 @@ lib.require.all("hash.get array.to");
 * `stop(name, ...args)`:
   * calls `svc.stop(...args)` when available, else returns service value
 
-### 10) `lib.dom`, `lib.dom.create`, `lib.dom.append` (DOM helpers)
+### 10) `lib.dom`, `lib.dom.create`, `lib.dom.append`, `lib.dom.form`, `lib.dom.transform` (DOM helpers)
 
 Primary usage:
 
@@ -643,6 +663,7 @@ lib.dom.append.append(btn, node);
 * `getElement` / `byId` / `removeElement` / `insertAfter`: direct element utilities
 * `qs()`: query-string to object parsing
 * `filterAttributes(e, regex, opts)`: attribute extraction/filtering helper
+* nested namespaces: `create`, `append`, `form`, `transform`
 
 `lib.dom.create` semantics:
 
@@ -663,6 +684,29 @@ lib.dom.append.append(btn, node);
   * `remove` -> removed target element or `null`
   * `empty` -> target element (after child removal) or `null`
   * `resolveTarget` -> resolved element or `null`
+
+`lib.dom.form` semantics:
+
+* `submit(triggerOrCollected, opts)`:
+  * supports native form submit mode and request-envelope mode
+  * can accept either a DOM trigger element or pre-collected form payload
+* `collect` / `collectForm`:
+  * extracts form payload into `{ url, method, parms, form, event }`
+* `toJson`:
+  * converts collected payload to object form (inflated by default)
+* `makeUrl`, `makeBody`, `makeHeader`:
+  * request-construction helpers used by submit flow
+* `getDomKV`, `arrayToQS`, `arrayToHash`:
+  * lower-level form/value conversion helpers
+
+`lib.dom.transform` semantics:
+
+* `element(el, scheme, opts)`:
+  * applies declarative `data-*` bindings across an element subtree
+  * supports map-driven transforms via `data-map-key`
+* `list(target, template, data, opts)`:
+  * clones template rows and applies `element(...)` per row
+  * supports append/replace list behavior via `opts.append`
 
 ### 11) `lib._http` (low-level XHR helpers)
 

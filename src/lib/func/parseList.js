@@ -25,6 +25,11 @@
  *              - "kv"   -> row.args = row.kv
  *              - "auto" -> row.args = row.kv if any "=" appears, else row.pos
  *              Default: "auto"
+ * - opts.dot  : when true, key assignments in `kv` use dot-path set semantics
+ *               through `lib.hash.set` (for example `a.b=1` -> `{a:{b:"1"}}`).
+ * - opts.push : when true, repeated key assignments accumulate into arrays
+ *               (for example `foo=1,foo=2` -> `{ foo: ["1","2"] }`).
+ * - Aliases: `opts.nested` (same as `dot`), `opts.repeat` (same as `push`).
  *
  * Output row shape:
  * - {
@@ -33,6 +38,8 @@
  *     kv: Object,
  *     args: Array|Object
  *   }
+ * - For hash input rows: if `args` already exists, it is preserved as-is.
+ *   (The parser normalizes `fn` key and validates shape, but does not recompute `args`.)
  *
  * Validation:
  * - Throws on invalid rows (never silently skips):
@@ -55,6 +62,7 @@ export function make(lib) {
 	opts = lib.hash.to(opts,'args');
 	const argsMode = normalizeArgsMode(opts.args);
 	const fnKey = normalizeFnKey(opts.fn);
+	const parseOpts = normalizeParseOptions(opts);
 	const out = [];
 	const list = lib.array.to(str, {split:';',trim:true});
 	
@@ -62,7 +70,7 @@ export function make(lib) {
 	    const segment = list[i];
 
 	    if (lib.str.is(segment)) {
-		const parsed = parseFunction(segment, fnKey);
+		const parsed = parseFunction(segment, fnKey, parseOpts);
 		if (!parsed || !hasMinimalFn(parsed[fnKey])) {
 		    throwInvalidSegment(i, segment, `Expected '${fnKey}:args' format with non-empty ${fnKey}`);
 		}
@@ -74,12 +82,12 @@ export function make(lib) {
 	    if (!parsed) {
 		throwInvalidSegment(i, segment, `Expected hash with '${fnKey}' as non-empty string or function`);
 	    }
-	    out.push(selectArgsOutput(parsed, argsMode));
+	    out.push(selectArgsOutput(parsed, argsMode, { preserveArgs: true }));
 	}
 	return out;
     }
 
-    function parseFunction(value, fnKey = "fn"){
+    function parseFunction(value, fnKey = "fn", parseOpts = undefined){
 	value = lib.str.to(value, true).trim();
 	if (!value) return undefined;
 
@@ -91,7 +99,7 @@ export function make(lib) {
 
 	let parsedArgs = undefined;
 	if (argString) {
-	    parsedArgs = parseArgList(argString);
+	    parsedArgs = parseArgList(argString, parseOpts);
 	}
 	const pos = (parsedArgs && Array.isArray(parsedArgs.pos)) ? parsedArgs.pos : [];
 	const kv = (parsedArgs && lib.hash.is(parsedArgs.kv)) ? parsedArgs.kv : {};
@@ -143,6 +151,14 @@ export function make(lib) {
 	return name || "fn";
     }
 
+    function normalizeParseOptions(opts) {
+	opts = lib.hash.to(opts);
+	return {
+	    dot : lib.bool.yes(opts.dot) || lib.bool.yes(opts.nested),
+	    push: lib.bool.yes(opts.push) || lib.bool.yes(opts.repeat),
+	};
+    }
+
     function segmentHasEquals(segment) {
 	if (!segment) return false;
 	if (segment.hasEquals === true) return true;
@@ -156,7 +172,8 @@ export function make(lib) {
 	return false;
     }
 
-    function selectArgsOutput(segment, mode) {
+    function selectArgsOutput(segment, mode, opts = undefined) {
+	opts = lib.hash.to(opts);
 	const out = Object.assign({}, segment);
 	const pos = Array.isArray(out.pos) ? out.pos : [];
 	const kv = lib.hash.is(out.kv) ? out.kv : {};
@@ -165,15 +182,18 @@ export function make(lib) {
 	out.pos = pos;
 	out.kv = kv;
 
-	if (mode === "pos") out.args = pos;
-	else if (mode === "kv") out.args = kv;
-	else out.args = hasEquals ? kv : pos;
+	if (!(opts.preserveArgs && Object.prototype.hasOwnProperty.call(out, "args"))) {
+	    if (mode === "pos") out.args = pos;
+	    else if (mode === "kv") out.args = kv;
+	    else out.args = hasEquals ? kv : pos;
+	}
 
 	delete out.hasEquals;
 	return out;
     }
 
-    function parseArgList(argString){
+    function parseArgList(argString, parseOpts = undefined){
+	parseOpts = Object.assign({ dot: false, push: false }, lib.hash.to(parseOpts));
 	const pos = [];
 	const kv = {};
 	let hasEquals = false;
@@ -194,22 +214,52 @@ export function make(lib) {
 
 	    const eq = token.indexOf("=");
 	    if (eq <= 0) {
-		kv[token] = true;
+		assignKv(kv, token, true, parseOpts);
 		continue;
 	    }
 
 	    const key = token.slice(0, eq).trim();
 	    const value = token.slice(eq + 1).trim();
 	    if (!key) {
-		kv[token] = true;
+		assignKv(kv, token, true, parseOpts);
 		continue;
 	    }
 
 	    hasEquals = true;
-	    kv[key] = (value === "") ? undefined : value;
+	    assignKv(kv, key, (value === "") ? undefined : value, parseOpts);
 	}
 
 	return { pos, kv, hasEquals };
+    }
+
+    function assignKv(kv, key, value, opts = undefined) {
+	opts = Object.assign({ dot: false, push: false }, lib.hash.to(opts));
+	key = lib.str.to(key, true).trim();
+	if (!key) return;
+
+	if (!opts.push) {
+	    if (opts.dot) lib.hash.set(kv, key, value);
+	    else kv[key] = value;
+	    return;
+	}
+
+	let exists;
+	let current;
+	if (opts.dot) {
+	    exists = lib.hash.exists(kv, key);
+	    current = exists ? lib.hash.get(kv, key) : undefined;
+	} else {
+	    exists = Object.prototype.hasOwnProperty.call(kv, key);
+	    current = exists ? kv[key] : undefined;
+	}
+
+	let next;
+	if (!exists) next = value;
+	else if (Array.isArray(current)) next = current.concat([value]);
+	else next = [current, value];
+
+	if (opts.dot) lib.hash.set(kv, key, next);
+	else kv[key] = next;
     }
     return parseList;
 }
