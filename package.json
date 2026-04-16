@@ -1,0 +1,12 @@
+{
+  "name": "m7-js-lib",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "scripts": {
+    "build:nomap": "bash scripts/build-dist.sh --out-dir dist/nomap",
+    "build:map": "bash scripts/build-dist.sh --out-dir dist/map --with-map",
+    "build": "npm run build:nomap && npm run build:map"
+  }
+}
