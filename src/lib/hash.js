@@ -321,60 +321,105 @@ export function make(lib) {
     }
 
     /**
-     * Safely get a nested value from an object using a dot-path.
-     *
-     * Supports array indexes in paths:
-     *   - "foo.0.bar"  => foo[0].bar
-     *
-     * Semantics (kept):
-     * - If an intermediate hop cannot be traversed, returns `def`.
-     * - On the final key, returns value unless it is `undefined` (then returns `def`).
-     *
-     * @param {object|array} E
-     * @param {string|array} prop
-     * @param {*} def
-     * @returns {*}
-     */
-    function hashGet(E, prop, def) {
-	if (!lib.utils.baseType(E, 'object') && !lib.utils.baseType(E, 'array')) return def;
+ * Safely resolve a nested value from a structure using a dot-path.
+ *
+ * Supports:
+ * - Dot-path strings: "foo.bar.baz"
+ * - Array paths: ["foo", "bar", "baz"]
+ * - Array indexing: "foo.0.bar" → foo[0].bar
+ *
+ * COERCIVE DESIGN:
+ * This function is intentionally *coercive*, not strict. It normalizes inputs
+ * and attempts to return a useful result rather than throwing.
+ *
+ * PATH SEMANTICS:
+ * - `null` / falsy path (via lib.array.to behavior) returns the root `E`
+ *   (identity resolution).
+ *
+ * TRAVERSAL RULES:
+ * - In **strict mode** (default):
+ *     Only plain objects and arrays are traversable.
+ *
+ * - In **non-strict mode** (`opts.strict === false`):
+ *     Function objects are also treated as traversable containers.
+ *     This enables patterns like:
+ *
+ *         atlib.ui.alert.set
+ *
+ *     where `alert` is itself a function with attached methods.
+ *
+ * FAILURE BEHAVIOR:
+ * - If any intermediate step cannot be traversed → returns `def`.
+ * - On the final key:
+ *     - `undefined` → returns `def`
+ *     - any other value (including null, false, 0, function, object) → returned as-is
+ *
+ * ARRAY INDEXING:
+ * - When traversing arrays, numeric string keys ("0", "1", ...) are coerced to integers.
+ *
+ * @param {object|array|function} E
+ *     Root object to resolve from. Functions may be traversed in non-strict mode.
+ *
+ * @param {string|array|null} prop
+ *     Path to resolve. May be:
+ *       - dot-path string
+ *       - array of keys
+ *       - null (returns E)
+ *
+ * @param {Object|*} [opts]
+ *     Options or default value (coerced via lib.hash.to).
+ *
+ * @param {*} [opts.def]
+ *     Default value returned when resolution fails.
+ *
+ * @param {boolean} [opts.strict=true]
+ *     Traversal mode:
+ *       - true  → only object/array traversal
+ *       - false → allow function objects as containers
+ *
+ * @returns {*}
+ *     Resolved value, or `opts.def` if resolution fails.
+ */
+    // "coercive resolver, not a strict accessor:"
+    function hashGet(E, prop, opts) {
+	opts = to(opts,'def');
+	opts.strict = !lib.bool.no(opts.strict);
+	const def = opts.def;
 
+	const isTraversable = (input) => {
+	    const type = lib.utils.baseType(input);
+	    return (type === 'object' || type === 'array' || (!opts.strict && type === 'function'))
+		? type : false;
+	};
+	if(!isTraversable(E) ) return def;
+	
 	const parts = lib.array.to(prop, '.');
-	if (!parts) {
-            console.log('wasnt able to parse array from prop: ' + prop);
-            return def;
-	}
+	if (!parts)  return def;
 
 	let ptr = E;
 
 	for (let i = 0; i < parts.length; i++) {
             const keyRaw = parts[i];
 
-            // Must be traversable *as a container* to continue
-            const ptrIsObj = lib.utils.baseType(ptr, 'object');
-            const ptrIsArr = lib.utils.baseType(ptr, 'array');
-            if (!ptrIsObj && !ptrIsArr) return def;
+            // Must be traversable *as a container* to continue, unless 'loose'
+	    const ptrType = isTraversable(ptr);
+	    if(!ptrType) return def;
 
             // If current container is an array, prefer numeric index when key looks like an int.
             // Otherwise, treat as normal property access.
             let key = keyRaw;
-            if (ptrIsArr) {
+            if (ptrType==='array'  && typeof keyRaw === 'string' && /^[0-9]+$/.test(keyRaw)) {
 		// accept "0", "1", "2" ... (no negatives, no floats)
 		// NOTE: arr["0"] works anyway; converting to number is mainly clarity + guards.
-		if (typeof keyRaw === 'string' && /^[0-9]+$/.test(keyRaw)) {
-                    key = parseInt(keyRaw, 10);
-		}
+                key = parseInt(keyRaw, 10);
             }
 
             const val = ptr[key];
-
-            // Traverse if next value is object OR array
-            const valIsObj = lib.utils.baseType(val, 'object');
-            const valIsArr = lib.utils.baseType(val, 'array');
-
-            if (valIsObj || valIsArr) {
+            // Traverse if next value is acceptable
+	    if(isTraversable(val)) {
 		ptr = val;
 		continue;
-            }
+	    }
 
             // Not traversable: if not at end, fail
             if (i < parts.length - 1) return def;
@@ -385,7 +430,7 @@ export function make(lib) {
 
 	return ptr;
     }
-
+    
 
     /**
      * Return the first non-null / non-undefined value found at any of the given paths.

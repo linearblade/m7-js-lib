@@ -10,6 +10,42 @@
  * - This module intentionally preserves legacy transform semantics from the
  *   standalone `m7-js-lib-dom-transform` package.
  */
+
+/**
+ * Clones a <template> and returns exactly one DOM Element.
+ * 
+ * @param {HTMLTemplateElement} template
+ * @param {boolean} [wrap=false] - If true, wraps multiple (or zero) children in a <div>. 
+ *                                 If false, throws when there's not exactly one root element.
+ * @returns {Element} Always returns a single Element
+ */
+function cloneTemplate(template, wrap = false) {
+    if (!(template instanceof HTMLTemplateElement)) {
+        throw new Error("template must be an instance of HTMLTemplateElement");
+    }
+
+    const fragment = document.importNode(template.content, true);
+    const childCount = fragment.children.length;
+
+ 
+    if (childCount === 1) {
+        return fragment.firstElementChild;
+    }
+
+ 
+    if (!wrap) {
+        throw new Error(
+            `cloneTemplate: Template must contain exactly one root element. ` +
+            `Found ${childCount} root element(s). Use wrap=true to allow wrapping.`
+        );
+    }
+
+     const wrapper = document.createElement('div');
+    wrapper.append(fragment);
+    return wrapper;
+}
+
+
 export function make(lib) {
     function getDocument() {
         const envDoc = lib.hash.get(lib, "_env.root.document");
@@ -173,23 +209,40 @@ export function make(lib) {
     function transformList(target, template, data, opts) {
         opts = lib.hash.to(opts, "append");
         data = lib.array.to(data);
-        if (!data.length) return console.warn("list data is empty");
 
         const doc = getDocument();
         target = lib.dom.is(target) ? target : (doc ? doc.querySelector(target) : undefined);
         template = lib.dom.is(template) ? template : (doc ? doc.querySelector(template) : undefined);
 
-        if (!target) return console.error(`target ${target} not found`);
-        if (!template) return console.error(`template ${template} not found`);
+        if (!target)   throw new Error(`[lib.dom.transform.list] target ${target} not found`);
+        if (!template) throw new Error(`[lib.dom.transform.list] template ${template} not found`);
 
         if (!lib.utils.toString(opts.append, 1).toLowerCase().match("append")) {
             target.innerHTML = "";
         }
 
+        if (!data.length){
+	    let [emptyTemplate, emptyMap, emptyHTML,emptyData] = lib.hash.expand(opts, "empty.template empty.map empty.html empty.data");
+	    if (emptyTemplate ) {
+		emptyTemplate = lib.dom.attempt(emptyTemplate);
+		if(!lib.dom.is(emptyTemplate) )
+		    throw new Error("empty element must be a dom node");
+		const clone = emptyTemplate instanceof HTMLTemplateElement ?
+		      cloneTemplate(emptyTemplate) :
+		      emptyTemplate.cloneNode(true);
+		target.appendChild(clone);
+		transformElement(clone, emptyData, {map:lib.hash.to(emptyMap)});
+	    }else if(emptyHTML) {
+		target.innerHTML = lib.str.to(emptyHTML, true);
+	    }
+	    return;
+	}
+
+	
         const env = { i: -1 };
         for (const row of data) {
             env.i++;
-            const clone = template.cloneNode(1);
+            const clone = template instanceof HTMLTemplateElement ? cloneTemplate(template) : template.cloneNode(1);
             target.appendChild(clone);
 
             const scheme = opts.scheme ? opts.scheme(env, data) : row;

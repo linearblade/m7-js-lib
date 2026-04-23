@@ -81,13 +81,13 @@ export function make(lib){
 	if (typeof f === "function") return f;
 	if (typeof f !== "string") return opts.dummy ? DUMMY_FN : undefined;
 
-	let fn = lib.hash.get(root, f);
+	let fn = lib.hash.get(root, f,{strict:false});
 	if (typeof fn !== "function") return opts.dummy ? DUMMY_FN : undefined;
 
 	if (opts.bind) {
 	    let parent = root;
 	    const parts = lib.array.to(f, '.');
-	    if (parts.length > 1) parent = lib.hash.get(root, parts.slice(0, -1));
+	    if (parts.length > 1) parent = lib.hash.get(root, parts.slice(0, -1), {strict:false} );
 	    if (parent) { try { fn = fn.bind(parent); } catch (e) {} }
 	}
 	
